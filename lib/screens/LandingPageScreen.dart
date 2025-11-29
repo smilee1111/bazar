@@ -14,20 +14,21 @@ class LandingPageScreen extends StatelessWidget {
               alignment: Alignment.center,
               width: double.infinity,
               child: Image.asset(
-                'assets/images/bgimage.png',
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.fill,
+              'assets/images/bgimage.png',
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.fitHeight,
               ),
+              
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Container(
               width: double.infinity,
-              color: const Color.fromARGB(255, 220, 204, 157),
+              color: Color(0xFFF5F0C5),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Text(
                     "Find your Shop.",
@@ -38,14 +39,21 @@ class LandingPageScreen extends StatelessWidget {
                       color: Colors.brown[500],
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-
                   SizedBox(
                     width: 150,
                     child: ElevatedButton(
-                      onPressed: () {},
-                      child: const Text("Begin"),
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 7,horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14.0),
+                    ),
+                    backgroundColor: Color(0xFF8F7E4F)),
+                      child: const Text("BEGIN.",
+                      style: TextStyle(color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w300),
+                      ),
                     ),
                   ),
                 ],
