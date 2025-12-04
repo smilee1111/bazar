@@ -12,7 +12,7 @@ class AppTextStyle {
   // ---------- Headings ----------
   static const TextStyle h1 = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 23,
+    fontSize: 25,
     fontWeight: FontWeight.normal,
     color: darkTextColor,
   );
@@ -37,6 +37,12 @@ class AppTextStyle {
     color: darkTextColor,
   );
 
+  static const TextStyle landingTexts = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w300,
+    color: darkTextColor,
+  );
   // ---------- Custom Color Override ----------
   static TextStyle color(TextStyle style, Color color) {
     return style.copyWith(color: color);

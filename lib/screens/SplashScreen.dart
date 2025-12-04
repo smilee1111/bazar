@@ -1,12 +1,27 @@
 import 'package:bazar/theme/colors.dart';
 import 'package:flutter/material.dart';
 
-class LandingPageScreen extends StatelessWidget {
-  const LandingPageScreen({super.key});
+class Splashscreen extends StatefulWidget {
+  const Splashscreen({super.key});
+
+  @override
+  State<Splashscreen> createState() => _SplashscreenState();
+}
+
+class _SplashscreenState extends State<Splashscreen> {
+   @override
+  void initState() {
+    super.initState();
+
+    // Navigate after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pushReplacementNamed(context, '/LandingScreen');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+     return Scaffold(
       body: Column(
         children: [
           Expanded(
@@ -22,7 +37,9 @@ class LandingPageScreen extends StatelessWidget {
               ),
               
             ),
+            
           ),
+          
           Expanded(
             flex: 3,
             child: Container(
@@ -31,6 +48,7 @@ class LandingPageScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  Image.asset('assets/images/bazarlogo.png',),
                   Text(
                     "Find your Shop.",
                     style: TextStyle(
@@ -40,25 +58,8 @@ class LandingPageScreen extends StatelessWidget {
                       color: Colors.brown[500],
                     ),
                   ),
-                  SizedBox(
-                    width: 150,
-                    child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/OnboardingScreen');
-                    },
-                    style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 7,horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14.0),
-                    ),
-                    backgroundColor: AppColors.accent),
-                      child: const Text("BEGIN",
-                      style: TextStyle(color: Colors.white,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w300),
-                      ),
-                    ),
-                  ),
+                  
+                
                 ],
               ),
             ),
