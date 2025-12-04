@@ -99,7 +99,9 @@ class _LoginpagescreenState extends State<Loginpagescreen> {
            SizedBox(
             width: 150,
             child: ElevatedButton(
-              onPressed: () {}, 
+              onPressed: () {
+                Navigator.pushNamed(context, '/DashboardScreen');
+              }, 
               style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromRGBO(82, 70, 50, 1),
               minimumSize: Size(double.infinity, 50),
@@ -111,7 +113,9 @@ class _LoginpagescreenState extends State<Loginpagescreen> {
               style: AppTextStyle.buttonText,),
             ),
           ),
-          TextButton(onPressed: () {}, child: Text("Don't have an account?",
+          TextButton(onPressed: () {
+            Navigator.pushNamed(context, '/RegisterScreen');
+          }, child: Text("Don't have an account?",
           style: AppTextStyle.minimalTexts.copyWith(
           decoration: TextDecoration.underline,))),
           SizedBox(height: 15),

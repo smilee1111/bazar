@@ -192,7 +192,9 @@ class _SignuppagescreenState extends State<Signuppagescreen> {
               style: AppTextStyle.buttonText,),
             ),
           ),
-          TextButton(onPressed: () {}, child: Text("Already have an account? Sign In",
+          TextButton(onPressed: () {
+            Navigator.pushNamed(context, '/LoginScreen');
+          }, child: Text("Already have an account? Sign In",
           style: AppTextStyle.minimalTexts.copyWith(
           decoration: TextDecoration.underline,))),
             Container(
