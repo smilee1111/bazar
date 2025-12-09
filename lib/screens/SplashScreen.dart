@@ -33,7 +33,7 @@ class _SplashscreenState extends State<Splashscreen> {
               'assets/images/bgimage.png',
               width: double.infinity,
               height: double.infinity,
-              fit: BoxFit.fitHeight,
+              fit: BoxFit.fill
               ),
               
             ),
