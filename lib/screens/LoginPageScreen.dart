@@ -16,16 +16,13 @@ class _LoginpagescreenState extends State<Loginpagescreen> {
   @override
   Widget build(BuildContext context) {
 return Scaffold(
-  backgroundColor: AppColors.background,
-  appBar: AppBar(
-    backgroundColor: AppColors.background,
-  ),
   body: SafeArea(
     child: SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(30),
       child: Form(
         key: _formKey,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Row(
@@ -34,28 +31,28 @@ return Scaffold(
                   'CLICK\n\nTYPE\n\nFIND\n\nyour shop.',
                   style: AppTextStyle.h1,
                 ),
-                const SizedBox(width: 120),
-                Image.asset(
-                  'assets/images/shopping bag img.png',
+                SizedBox(width:5),
+                SizedBox(
+                  width: 200,
+                  height: 300,
+                  child: Image.asset(
+                  'assets/images/image2.png',
+                  fit: BoxFit.cover,
                   width: 100,
                   height: 200,
                 ),
+                )
+                
               ],
             ),
-
             const SizedBox(height: 55),
-
             // USERNAME
             TextFormField(
               controller: usernameController,
               keyboardType: TextInputType.text,
-              style: AppTextStyle.inputBox,
               decoration: InputDecoration(
                 labelText: "USERNAME",
                 hintText: "e.g: John Doe",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -71,13 +68,9 @@ return Scaffold(
             TextFormField(
               controller: passwordController,
               obscureText: true,
-              style: AppTextStyle.inputBox,
               decoration: InputDecoration(
                 labelText: "PASSWORD",
                 suffixIcon: Icon(Icons.visibility),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -105,20 +98,11 @@ return Scaffold(
                     Navigator.pushNamed(context, '/DashboardScreen');
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromRGBO(82, 70, 50, 1),
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
                 child: Text(
                   "LOGIN",
-                  style: AppTextStyle.buttonText,
                 ),
               ),
             ),
-
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/RegisterScreen');
@@ -130,12 +114,10 @@ return Scaffold(
                 ),
               ),
             ),
-
             const SizedBox(height: 15),
-
             Container(
               width: double.infinity,
-              height: 85,
+              height: 80,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
@@ -147,8 +129,8 @@ return Scaffold(
                   const SizedBox(width: 10),
                   Image.network(
                     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/960px-Google_Favicon_2025.svg.png',
-                    width: 40,
-                    height: 40,
+                    width: 30,
+                    height: 30,
                   ),
                 ],
               ),
