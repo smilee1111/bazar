@@ -25,7 +25,8 @@ class _DashboardscreenState extends State<Dashboardscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: lstBottomScreen[_selectedIndex],
+      body:
+       lstBottomScreen[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         iconSize: 40,
         items: const[

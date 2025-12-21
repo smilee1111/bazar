@@ -42,6 +42,7 @@ ThemeData getApplicationTheme(){
       backgroundColor: Color(0xFF524632),
       unselectedIconTheme: IconThemeData(color: Colors.white),
       selectedItemColor: Color(0xFFA48256),
+      unselectedItemColor: Colors.white,
       type: BottomNavigationBarType.fixed,
       selectedLabelStyle: AppTextStyle.bottomnav,
       unselectedLabelStyle: AppTextStyle.bottomnav,

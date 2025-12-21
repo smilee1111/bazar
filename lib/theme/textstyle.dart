@@ -42,7 +42,7 @@ class AppTextStyle {
     fontFamily: fontFamily,
     fontSize: 10,
     fontWeight: FontWeight.w600,
-    color: darkTextColor,
+    color: lightTextColor,
   );
 
   static const TextStyle landingTexts = TextStyle(
