@@ -7,12 +7,12 @@ import 'package:bazar/features/role/domain/repositories/role_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final roleRepositoryProvider = Provider<IRoleRepository>((ref) {
+final roleRepositoryProvider = Provider<IroleRepository>((ref) {
   final roleDatasource = ref.read(roleLocalDatasourceProvider);
   return RoleRepository(roleDatasource: roleDatasource);
 });
 
-class RoleRepository implements IRoleRepository {
+class RoleRepository implements IroleRepository {
   final IRoleDataSource _roleDataSource;
 
   RoleRepository({required IRoleDataSource roleDatasource})
