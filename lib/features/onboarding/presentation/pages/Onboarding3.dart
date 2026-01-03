@@ -1,7 +1,7 @@
 import 'package:bazar/app/routes/app_routes.dart';
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
-import 'package:bazar/features/dashboard/presentation/pages/DashboardScreen.dart';
+import 'package:bazar/features/auth/presentation/pages/SignupPageScreen.dart';
 import 'package:flutter/material.dart';
 
 class Onboarding3 extends StatelessWidget {
@@ -12,7 +12,7 @@ class Onboarding3 extends StatelessWidget {
     return Scaffold(
         body:  GestureDetector(
           onTap: () {
-            AppRoutes.pushAndRemoveUntil(context, const Dashboardscreen());
+            AppRoutes.pushAndRemoveUntil(context, const Signuppagescreen());
           },
           child: Padding(
             padding: const EdgeInsets.all(30),
@@ -20,12 +20,30 @@ class Onboarding3 extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Container(
-                    alignment: Alignment.topLeft,
-                  child: Image.asset('assets/images/bazarlogo.png',
-                  width: 90,
-                  height: 90,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Image.asset('assets/images/bazarlogo.png',
+                        width: 90,
+                        height: 90,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        AppRoutes.pushAndRemoveUntil(context, const Signuppagescreen());
+                      },
+                      child: Text(
+                        'Skip',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 20),
                 Expanded(

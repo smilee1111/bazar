@@ -1,24 +1,38 @@
 import 'package:bazar/app/routes/app_routes.dart';
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
+import 'package:bazar/core/services/storage/user_session_service.dart';
+import 'package:bazar/features/dashboard/presentation/pages/DashboardScreen.dart';
+import 'package:bazar/features/onboarding/presentation/pages/OnboardingScreen.dart';
 import 'package:bazar/features/splash/presentation/pages/LandingPageScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Splashscreen extends StatefulWidget {
+class Splashscreen extends ConsumerStatefulWidget {
   const Splashscreen({super.key});
 
   @override
-  State<Splashscreen> createState() => _SplashscreenState();
+  ConsumerState<Splashscreen> createState() => _SplashscreenState();
 }
 
-class _SplashscreenState extends State<Splashscreen> {
+class _SplashscreenState extends ConsumerState<Splashscreen> {
    @override
   void initState() {
     super.initState();
 
     // Navigate after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
-      AppRoutes.pushReplacement(context, const LandingPageScreen());
+      // Check if user is already logged in
+      final userSessionService = ref.read(userSessionServiceProvider);
+      final isLoggedIn = userSessionService.isLoggedIn();
+
+      if (isLoggedIn) {
+        // Navigate to Dashboard if user is logged in
+        AppRoutes.pushReplacement(context, const Dashboardscreen());
+      } else {
+        // Navigate to Landing Page if user is not logged in
+        AppRoutes.pushReplacement(context, const LandingPageScreen());
+      }
     });
   }
 
