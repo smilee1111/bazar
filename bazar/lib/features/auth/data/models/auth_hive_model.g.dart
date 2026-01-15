@@ -6,17 +6,17 @@ part of 'auth_hive_model.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class AuthHiveModelAdapter extends TypeAdapter<AuthApiModel> {
+class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
   @override
   final int typeId = 1;
 
   @override
-  AuthApiModel read(BinaryReader reader) {
+  AuthHiveModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return AuthApiModel(
+    return AuthHiveModel(
       authId: fields[0] as String?,
       fullName: fields[1] as String,
       email: fields[2] as String,
@@ -27,7 +27,7 @@ class AuthHiveModelAdapter extends TypeAdapter<AuthApiModel> {
   }
 
   @override
-  void write(BinaryWriter writer, AuthApiModel obj) {
+  void write(BinaryWriter writer, AuthHiveModel obj) {
     writer
       ..writeByte(6)
       ..writeByte(0)
