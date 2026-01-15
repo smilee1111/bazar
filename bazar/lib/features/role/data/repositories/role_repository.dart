@@ -13,9 +13,9 @@ final roleRepositoryProvider = Provider<IroleRepository>((ref) {
 });
 
 class RoleRepository implements IroleRepository {
-  final IRoleDataSource _roleDataSource;
+  final IRoleLocalDataSource _roleDataSource;
 
-  RoleRepository({required IRoleDataSource roleDatasource})
+  RoleRepository({required IRoleLocalDataSource roleDatasource})
     : _roleDataSource = roleDatasource;
 
   @override
