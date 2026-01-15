@@ -17,7 +17,7 @@ final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
   );
 
 });
-class AuthLocalDatasource implements IAuthDataSource{
+class AuthLocalDatasource implements IAuthLocalDataSource{
   final HiveService _hiveService;
   final UserSessionService _userSessionService;
 
@@ -30,7 +30,7 @@ class AuthLocalDatasource implements IAuthDataSource{
 
 
   @override
-  Future<AuthHiveModel?> login(String email, String password) async{
+  Future<AuthApiModel?> login(String email, String password) async{
     try{
     final user =  _hiveService.login(email,password);
      if (user != null && user.authId != null) {
@@ -50,11 +50,11 @@ class AuthLocalDatasource implements IAuthDataSource{
   }
 
   @override
-  Future<AuthHiveModel> register(AuthHiveModel user) async {
+  Future<AuthApiModel> register(AuthApiModel user) async {
     return await _hiveService.register(user);
   }
   @override
-  Future<bool> updateUser(AuthHiveModel user) async {
+  Future<bool> updateUser(AuthApiModel user) async {
     try {
       return await _hiveService.updateUser(user);
     } catch (e) {
@@ -71,7 +71,7 @@ class AuthLocalDatasource implements IAuthDataSource{
     }
   }
   @override
-  Future<AuthHiveModel?> getCurrentUser() async {
+  Future<AuthApiModel?> getCurrentUser() async {
     try {
       // Check if user is logged in
       if (!_userSessionService.isLoggedIn()) {
@@ -91,7 +91,7 @@ class AuthLocalDatasource implements IAuthDataSource{
     }
   }
   @override
-  Future<AuthHiveModel?> getUserByEmail(String email) async {
+  Future<AuthApiModel?> getUserByEmail(String email) async {
     try {
       return _hiveService.getUserByEmail(email);
     } catch (e) {
@@ -100,7 +100,7 @@ class AuthLocalDatasource implements IAuthDataSource{
   }
 
   @override
-  Future<AuthHiveModel?> getUserById(String authId) async {
+  Future<AuthApiModel?> getUserById(String authId) async {
     return await _hiveService.getUserById(authId);
   }
 

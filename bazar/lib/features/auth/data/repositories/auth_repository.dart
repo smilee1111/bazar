@@ -17,8 +17,8 @@ final authRepositoryProvider = Provider<IAuthRepository>((ref){
 
 class AuthRepository implements IAuthRepository{
 
-  final IAuthDataSource _authDataSource;
-  AuthRepository({required IAuthDataSource authDatasource})
+  final IAuthLocalDataSource _authDataSource;
+  AuthRepository({required IAuthLocalDataSource authDatasource})
     : _authDataSource = authDatasource;
 
 
@@ -74,7 +74,7 @@ class AuthRepository implements IAuthRepository{
           LocalDatabaseFailure(message: "Email already registered"),
         );
       }
-      final authModel = AuthHiveModel(
+      final authModel = AuthApiModel(
         fullName: user.fullName,
         email: user.email,
         username: user.username,

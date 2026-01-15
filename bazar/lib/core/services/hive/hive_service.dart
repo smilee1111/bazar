@@ -53,7 +53,7 @@ class HiveService {
 //OPEN BOXES
   Future<void> _openBoxes() async {
     await Hive.openBox<RoleHiveModel>(HiveTableConstant.roleTable);
-    await Hive.openBox<AuthHiveModel>(HiveTableConstant.userTable);
+    await Hive.openBox<AuthApiModel>(HiveTableConstant.userTable);
 
   }
 
@@ -99,17 +99,17 @@ class HiveService {
 
 
 //AUTH METHODS
-Box<AuthHiveModel> get _authBox =>
-      Hive.box<AuthHiveModel>(HiveTableConstant.userTable);
+Box<AuthApiModel> get _authBox =>
+      Hive.box<AuthApiModel>(HiveTableConstant.userTable);
 
   // Register user
-  Future<AuthHiveModel> register(AuthHiveModel user) async {
+  Future<AuthApiModel> register(AuthApiModel user) async {
     await _authBox.put(user.authId, user);
     return user;
   }
 
   // Login - find user by email and password
-  AuthHiveModel? login(String email, String password) {
+  AuthApiModel? login(String email, String password) {
     try {
       return _authBox.values.firstWhere(
         (user) => user.email == email && user.password == password,
@@ -120,12 +120,12 @@ Box<AuthHiveModel> get _authBox =>
   }
 
   // Get user by ID
-  AuthHiveModel? getUserById(String authId) {
+  AuthApiModel? getUserById(String authId) {
     return _authBox.get(authId);
   }
 
   // Get user by email
-  AuthHiveModel? getUserByEmail(String email) {
+  AuthApiModel? getUserByEmail(String email) {
     try {
       return _authBox.values.firstWhere((user) => user.email == email);
     } catch (e) {
@@ -134,7 +134,7 @@ Box<AuthHiveModel> get _authBox =>
   }
 
   // Update user
-  Future<bool> updateUser(AuthHiveModel user) async {
+  Future<bool> updateUser(AuthApiModel user) async {
     if (_authBox.containsKey(user.authId)) {
       await _authBox.put(user.authId, user);
       return true;
@@ -148,7 +148,7 @@ Box<AuthHiveModel> get _authBox =>
   }
 
   // Get current user (last logged in)
-  Future<AuthHiveModel?> getCurrentUser() async {
+  Future<AuthApiModel?> getCurrentUser() async {
     try {
       if (_authBox.isEmpty) {
         return null;

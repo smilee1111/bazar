@@ -8,7 +8,7 @@ part 'auth_hive_model.g.dart';
 
 
 @HiveType(typeId: HiveTableConstant.userTypeId)
-class AuthHiveModel extends HiveObject{
+class AuthApiModel extends HiveObject{
   @HiveField(0)
   final String? authId;
 
@@ -27,7 +27,7 @@ class AuthHiveModel extends HiveObject{
   @HiveField(5)
   final String? roleId;
 
-  AuthHiveModel({
+  AuthApiModel({
     String? authId,
     required this.fullName,
     required this.email,
@@ -50,8 +50,8 @@ class AuthHiveModel extends HiveObject{
     );
   }
 
-  factory AuthHiveModel.fromEntity(AuthEntity entity){
-      return AuthHiveModel(
+  factory AuthApiModel.fromEntity(AuthEntity entity){
+      return AuthApiModel(
       authId: entity.authId,
       fullName: entity.fullName,
       email: entity.email,
@@ -62,7 +62,7 @@ class AuthHiveModel extends HiveObject{
   }
 
     // To Entity List
-  static List<AuthEntity> toEntityList(List<AuthHiveModel> models) {
+  static List<AuthEntity> toEntityList(List<AuthApiModel> models) {
     return models.map((model) => model.toEntity()).toList();
   }
 }
