@@ -24,6 +24,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
 
 
   bool _obscurePassword = true;
@@ -38,6 +39,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -160,7 +162,26 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                       }
                       return null;
                     },
+                  ), 
+                SizedBox(height: 15),
+                TextFormField(
+                  controller: _phoneNumberController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: "Phone Number",
+                    hintText: "e.g: +977-9812345678",
+                    prefixIcon: Icon(Icons.phone_outlined),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    if (value.length < 10) {
+                      return 'Phone number must be at least 10 digits';
+                    }
+                    return null;
+                  },
+                ),
                 SizedBox(height: 15),
                 TextFormField(
                   controller: _usernameController,

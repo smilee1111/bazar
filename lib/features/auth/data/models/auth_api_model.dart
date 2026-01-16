@@ -5,6 +5,7 @@ class AuthApiModel {
   final String? id;
   final String fullName;
   final String email;
+  final String? phoneNumber;
   final String username;
   final String? password;
   final String? roleId;
@@ -14,6 +15,7 @@ class AuthApiModel {
     this.id, 
     required this.fullName, 
     required this.email, 
+    this.phoneNumber,
     required this.username, 
     this.password, 
     this.roleId,
@@ -25,6 +27,7 @@ class AuthApiModel {
       return{
       "name" : fullName,
       "email" :email,
+      "phoneNumber": phoneNumber,
       "username": username,
       "password": password,
       "roleId" : roleId,
@@ -37,6 +40,7 @@ class AuthApiModel {
         id: json['_id'] as String,
         fullName: json['name'] as String,
         email: json['email'] as String,
+        phoneNumber: json['phoneNumber'] as String?,
         username: json['username'] as String,
         roleId: json['roleId'] as String?,
         role: json['role'] != null
@@ -51,6 +55,7 @@ class AuthApiModel {
         authId: id,
         fullName: fullName,
         email: email,
+        phoneNumber: phoneNumber,
         username: username,
         roleId: roleId,
         role: role?.toEntity(),
@@ -63,6 +68,7 @@ class AuthApiModel {
         id: entity.authId,
         fullName: entity.fullName,
         email: entity.email,
+        phoneNumber: entity.phoneNumber,
         username: entity.username,
         password: entity.password,
         roleId: entity.roleId,
