@@ -133,6 +133,7 @@ class AuthRepository implements IAuthRepository{
       email: user.email, 
       username: user.username,
       password: user.password,
+      profilePic: user.profilePic,
       roleId: user.roleId,);
       await _authDataSource.register(authModel);
       return const Right(true);
