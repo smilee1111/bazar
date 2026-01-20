@@ -25,9 +25,12 @@ class AuthHiveModel extends HiveObject{
   final String? password;
 
   @HiveField(5)
-  final String? roleId;
+  final String? profilePic;
 
   @HiveField(6)
+  final String? roleId;
+
+  @HiveField(7)
   final String? phoneNumber;
 
   AuthHiveModel({
@@ -37,6 +40,7 @@ class AuthHiveModel extends HiveObject{
     this.phoneNumber,
     required this.username,
     this.password,
+    this.profilePic,
     this.roleId,
   }) : authId =authId ??const Uuid().v4();
 
@@ -50,6 +54,7 @@ class AuthHiveModel extends HiveObject{
       phoneNumber: phoneNumber,
       username: username,
       password: password,
+      profilePic: profilePic,
       roleId: roleId,
       role: role,
     );
@@ -63,6 +68,7 @@ class AuthHiveModel extends HiveObject{
       phoneNumber: entity.phoneNumber,
       username: entity.username,
       password: entity.password,
+      profilePic: entity.profilePic,
       roleId: entity.roleId ?? entity.role?.roleId,
     );
   }
