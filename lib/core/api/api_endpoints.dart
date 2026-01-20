@@ -1,14 +1,37 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+
 class ApiEndpoints {
   ApiEndpoints._();
 
   // Base URL - change this for production
   // Note: Backend uses /api (NOT /api/v1)
   // static const String baseUrl = 'http://10.0.2.2:5050/api';
-  static const String baseUrl = 'http://172.26.0.98:5050/api';
+  // static const String baseUrl = 'http://10.0.2.2:5050/api';
   //static const String baseUrl = 'http://localhost:5050/api';
   // For Android Emulator use: 'http://10.0.2.2:5050/api'
   // For iOS Simulator use: 'http://localhost:5050/api'
   // For Physical Device use your computer's IP: 'http://192.168.x.x:5050/api'
+  static const bool isPhysicalDevice = true;
+
+  static const String compAddress = '192.168.1.93';
+
+  static String get baseUrl {
+    if(isPhysicalDevice){
+      return 'http://$compAddress:5050/api';
+    }
+    if(kIsWeb){
+      return 'http://localhost:5050/api';
+    }else if (Platform.isAndroid){
+      return 'http://10.0.2.2:5050/api';
+    }else if (Platform.isIOS){
+      return 'http://localhost:5050/api';
+    }else{
+      return 'http://localhost:5050/api';
+    }
+  }
+
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
