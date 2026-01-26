@@ -1,6 +1,6 @@
 import 'package:bazar/screens/FavouriteScreen.dart';
 import 'package:bazar/features/dashboard/presentation/pages/HomeScreen.dart';
-import 'package:bazar/screens/ProfileScreen.dart';
+import 'package:bazar/features/auth/presentation/pages/ProfileScreen.dart';
 import 'package:bazar/screens/SavedScreen.dart';
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';

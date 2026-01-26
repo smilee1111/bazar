@@ -105,9 +105,14 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
   }
 
   @override
-  Future<bool> updateUser(AuthApiModel user) {
-    // TODO: implement updateUser
-    throw UnimplementedError();
+  Future<bool> updateUser(AuthApiModel user) async{
+    final token = await _tokenService.getToken();
+    await _apiClient.put(
+      ApiEndpoints.adminUserById(user.id!),
+      data: user.toJson(),
+      options: Options(headers: {'Authorization: ': 'Bearer $token'}),
+    );
+    return true;
   }
 
 
@@ -115,12 +120,12 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
   Future<String> uploadPhoto(File photo) async {
     final fileName = photo.path.split('/').last;
     final formData = FormData.fromMap({
-      'itemPhoto': await MultipartFile.fromFile(photo.path, filename: fileName),
+      'userPhoto': await MultipartFile.fromFile(photo.path, filename: fileName),
     });
     // Get token from token service
     final token = await _tokenService.getToken();
     final response = await _apiClient.uploadFile(
-      ApiEndpoints.itemUploadPhoto,
+      ApiEndpoints.userUploadPhoto,
       formData: formData,
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );

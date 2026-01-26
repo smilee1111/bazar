@@ -88,7 +88,7 @@ class AuthApiModel {
     }
 
     //From Entity
-    factory AuthApiModel.fromEnity(AuthEntity entity){
+    factory AuthApiModel.fromEntity(AuthEntity entity){
       return AuthApiModel(
         id: entity.authId,
         fullName: entity.fullName,

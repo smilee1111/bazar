@@ -13,24 +13,24 @@ class ApiEndpoints {
   // For Android Emulator use: 'http://10.0.2.2:5050/api'
   // For iOS Simulator use: 'http://localhost:5050/api'
   // For Physical Device use your computer's IP: 'http://192.168.x.x:5050/api'
+
+
+    // Configuration
   static const bool isPhysicalDevice = true;
+  static const String _ipAddress = '192.168.1.93';
+  static const int _port = 3000;
 
-  static const String compAddress = '192.168.1.93';
-
-  static String get baseUrl {
-    if(isPhysicalDevice){
-      return 'http://$compAddress:5050/api';
-    }
-    if(kIsWeb){
-      return 'http://localhost:5050/api';
-    }else if (Platform.isAndroid){
-      return 'http://10.0.2.2:5050/api';
-    }else if (Platform.isIOS){
-      return 'http://localhost:5050/api';
-    }else{
-      return 'http://localhost:5050/api';
-    }
+    // Base URLs
+  static String get _host {
+    if (isPhysicalDevice) return _ipAddress;
+    if (kIsWeb || Platform.isIOS) return 'localhost';
+    if (Platform.isAndroid) return '10.0.2.2';
+    return 'localhost';
   }
+
+  static String get serverUrl => 'http://$_host:$_port';
+  static String get baseUrl => '$serverUrl/api';
+  static String get mediaServerUrl => serverUrl;
 
   static const Duration connectionTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
@@ -48,7 +48,10 @@ class ApiEndpoints {
   // Backend: app.use('/api/auth', authRoutes)
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';
-  static const String itemUploadPhoto = '/items/upload-photo';
+  static const String userUploadPhoto = '/users/upload-photo';
+    static String userPicture(String filename) =>
+      '$mediaServerUrl/user_photos/$filename';
+
   // ============ Admin User Endpoints ============
   // Backend: app.use('/api/admin/users', adminRoutes)
   static const String adminUsers = '/admin/users';
