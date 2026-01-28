@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bazar/core/error/failure.dart';
 import 'package:bazar/core/services/connectivity/network_info.dart';
 import 'package:bazar/features/auth/data/datasources/auth_datasource.dart';
@@ -107,7 +109,7 @@ class AuthRepository implements IAuthRepository{
   Future<Either<Failure, bool>> register(AuthEntity user, {String? roleName, String? confirmPassword}) async{
    if (await _networkInfo.isConnected){
    try{
-    final apiModel = AuthApiModel.fromEnity(user);
+    final apiModel = AuthApiModel.fromEntity(user);
     await _authRemoteDataSource.register(apiModel, roleName: roleName, confirmPassword: confirmPassword);
     return const Right(true);
    }on DioException catch (e) {
@@ -133,6 +135,7 @@ class AuthRepository implements IAuthRepository{
       email: user.email, 
       username: user.username,
       password: user.password,
+      profilePic: user.profilePic,
       roleId: user.roleId,);
       await _authDataSource.register(authModel);
       return const Right(true);
@@ -140,6 +143,46 @@ class AuthRepository implements IAuthRepository{
       return Left(LocalDatabaseFailure(message: e.toString()));
     }
   }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploadPhoto(File photo) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final url = await _authRemoteDataSource.uploadPhoto(photo);
+        return Right(url);
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
+
+    @override
+  Future<Either<Failure, bool>> updateUser(AuthEntity user) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final userApiModel = AuthApiModel.fromEntity(user);
+        await _authRemoteDataSource.updateUser(userApiModel);
+        return const Right(true);
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      try {
+        final userModel = AuthHiveModel.fromEntity(user);
+        final result = await _authDataSource.updateUser(userModel);
+        if (result) {
+          return const Right(true);
+        }
+        return const Left(
+          LocalDatabaseFailure(message: "Failed to update user"),
+        );
+      } catch (e) {
+        return Left(LocalDatabaseFailure(message: e.toString()));
+      }
+    }
   }
 
 

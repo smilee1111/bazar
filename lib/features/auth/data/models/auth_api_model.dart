@@ -8,6 +8,7 @@ class AuthApiModel {
   final String? phoneNumber;
   final String username;
   final String? password;
+  final String? profilePic;
   final String? roleId;
   final RoleApiModel? role;
 
@@ -18,6 +19,7 @@ class AuthApiModel {
     this.phoneNumber,
     required this.username, 
     this.password, 
+    this.profilePic,
     this.roleId,
     this.role,
     });
@@ -29,6 +31,7 @@ class AuthApiModel {
         "email": email,
         "username": username,
         "password": password,
+        "profilePic": profilePic,
         "phoneNumber": phoneNumber != null && phoneNumber!.isNotEmpty 
             ? int.tryParse(phoneNumber!) ?? 0 
             : 0,
@@ -62,6 +65,7 @@ class AuthApiModel {
             ? json['phoneNumber'].toString() 
             : null,
         username: json['username'] as String? ?? '',
+        profilePic: json['profilePic'] as String?,
         roleId: json['roleId'] as String?,
         role: json['role'] != null && json['role'] is Map
           ? RoleApiModel.fromJson(json['role'] as Map<String, dynamic>)
@@ -77,13 +81,14 @@ class AuthApiModel {
         email: email,
         phoneNumber: phoneNumber,
         username: username,
+        profilePic: profilePic,
         roleId: roleId,
         role: role?.toEntity(),
       );
     }
 
     //From Entity
-    factory AuthApiModel.fromEnity(AuthEntity entity){
+    factory AuthApiModel.fromEntity(AuthEntity entity){
       return AuthApiModel(
         id: entity.authId,
         fullName: entity.fullName,
@@ -91,6 +96,7 @@ class AuthApiModel {
         phoneNumber: entity.phoneNumber,
         username: entity.username,
         password: entity.password,
+        profilePic: entity.profilePic,
         roleId: entity.roleId,
         role: entity.role != null
           ? RoleApiModel.fromEntity(entity.role!)
