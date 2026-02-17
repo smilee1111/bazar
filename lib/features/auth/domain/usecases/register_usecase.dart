@@ -14,7 +14,6 @@ class RegisterParams extends Equatable {
   final String username;
   final String password;
   final String confirmPassword;
-  final String roleName;
 
   const RegisterParams({
     required this.fullName,
@@ -23,7 +22,6 @@ class RegisterParams extends Equatable {
     required this.username,
     required this.password,
     required this.confirmPassword,
-    required this.roleName,
   });
 
   @override
@@ -34,7 +32,6 @@ class RegisterParams extends Equatable {
     username,
     password,
     confirmPassword,
-    roleName,
   ];
 }
 
@@ -60,6 +57,6 @@ class RegisterUsecase implements UsecaseWithParams<bool, RegisterParams> {
       password: params.password,
     );
 
-    return _authRepository.register(authEntity, roleName: params.roleName, confirmPassword: params.confirmPassword);
+    return _authRepository.register(authEntity, confirmPassword: params.confirmPassword);
   }
 }

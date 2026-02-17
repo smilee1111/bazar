@@ -25,7 +25,7 @@ class AuthApiModel {
     });
 
     //toJson - for registration
-    Map<String, dynamic> toJson({String? roleName, String? confirmPassword}){
+    Map<String, dynamic> toJson({String? confirmPassword}){
       final Map<String, dynamic> data = {
         "fullName": fullName,
         "email": email,
@@ -36,12 +36,6 @@ class AuthApiModel {
             ? int.tryParse(phoneNumber!) ?? 0 
             : 0,
       };
-      
-      // Add role name if provided (for registration)
-      if (roleName != null) {
-        data["role"] = roleName;
-      }
-      
       // Add confirmPassword if provided (for registration)
       if (confirmPassword != null) {
         data["confirmPassword"] = confirmPassword;
@@ -57,6 +51,34 @@ class AuthApiModel {
 
     //fromJson
     factory AuthApiModel.fromJson(Map<String, dynamic> json){
+      String? parsedRoleId;
+      RoleApiModel? parsedRole;
+
+      final dynamic roleField = json['roleId'];
+      if (roleField != null) {
+        if (roleField is String) {
+          parsedRoleId = roleField;
+        } else if (roleField is Map) {
+          final Map<String, dynamic> roleMap = Map<String, dynamic>.from(roleField);
+          parsedRoleId = (roleMap['roleId'] ?? roleMap['_id'])?.toString();
+          try {
+            parsedRole = RoleApiModel.fromJson(roleMap);
+          } catch (_) {
+            parsedRole = null;
+          }
+        }
+      }
+
+      // If there's a separate `role` field, prefer that for role details if not already parsed
+      if (parsedRole == null && json['role'] != null && json['role'] is Map) {
+        try {
+          parsedRole = RoleApiModel.fromJson(Map<String, dynamic>.from(json['role'] as Map));
+          parsedRoleId ??= (json['role']['roleId'] ?? json['role']['_id'])?.toString();
+        } catch (_) {
+          // ignore parse errors
+        }
+      }
+
       return AuthApiModel(
         id: json['_id'] as String?,
         fullName: json['fullName'] as String? ?? json['name'] as String? ?? '',
@@ -66,11 +88,9 @@ class AuthApiModel {
             : null,
         username: json['username'] as String? ?? '',
         profilePic: json['profilePic'] as String?,
-        roleId: json['roleId'] as String?,
-        role: json['role'] != null && json['role'] is Map
-          ? RoleApiModel.fromJson(json['role'] as Map<String, dynamic>)
-          : null,
-          );
+        roleId: parsedRoleId,
+        role: parsedRole,
+      );
     }
 
     //toEntity

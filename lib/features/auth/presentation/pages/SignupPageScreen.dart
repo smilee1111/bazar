@@ -5,8 +5,7 @@ import 'package:bazar/core/utils/snackbar_utils.dart';
 import 'package:bazar/features/auth/presentation/pages/LoginPageScreen.dart';
 import 'package:bazar/features/auth/presentation/state/auth_state.dart';
 import 'package:bazar/features/auth/presentation/view_model/auth_viewmodel.dart';
-import 'package:bazar/features/role/presentation/state/role_state.dart';
-import 'package:bazar/features/role/presentation/view_model/role_view_model.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -25,11 +24,8 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
-
-
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String? _selectedRole;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -47,32 +43,20 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
     @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      // Call load batches when the widget is built
-      ref.read(roleViewModelProvider.notifier).getAllRoles();
-    });
   }
 
    Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
-      // Find the selected role name
-      final roleState = ref.read(roleViewModelProvider);
-      final selectedRole = roleState.roles.firstWhere(
-        (role) => role.roleId == _selectedRole,
-        orElse: () => roleState.roles.first,
-      );
-
-      await ref
-      .read(authViewModelProvider.notifier)
-      .register(
-        fullName: _fullnameController.text.trim(),
-        email: _emailController.text.trim(),
-        username: _usernameController.text.trim(),
-        password: _passwordController.text,
-        confirmPassword: _confirmPasswordController.text,
-        phoneNumber: _phoneNumberController.text.trim(),
-        roleName: selectedRole.roleName,
-      );
+        await ref
+        .read(authViewModelProvider.notifier)
+        .register(
+          fullName: _fullnameController.text.trim(),
+          email: _emailController.text.trim(),
+          username: _usernameController.text.trim(),
+          password: _passwordController.text,
+          confirmPassword: _confirmPasswordController.text,
+          phoneNumber: _phoneNumberController.text.trim(),
+        );
     }
    }
 
@@ -89,7 +73,6 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
   Widget build(BuildContext context) {
 
     //provider watch 
-    final roleState = ref.watch(roleViewModelProvider);
     final authState = ref.watch(authViewModelProvider);
 
      // Listen to auth state changes
@@ -212,41 +195,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                     },
                 ),
                 SizedBox(height: 15),
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedRole,
-                  style: AppTextStyle.minimalTexts.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                  labelText: 'Role',
-                  hintText: roleState.status ==RoleStatus.loading
-                      ? 'Loading roles...'
-                      : 'Select your role',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  items: roleState.roles.map((role){
-                    return DropdownMenuItem<String>(
-                    value: role.roleId,
-                    child: Text(
-                      role.roleName,
-                      style: AppTextStyle.minimalTexts.copyWith(
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedRole = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select your role.';
-                    }
-                    return null;
-                  },
-                ),
+                SizedBox.shrink(),
                 SizedBox(height: 15),
                 TextFormField(
                   controller: _passwordController,
