@@ -17,7 +17,7 @@ class ApiEndpoints {
 
     // Configuration
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '10.1.30.239';
+  static const String _ipAddress = '10.1.30.238';
   static const int _port = 5050;
 
     // Base URLs
@@ -41,8 +41,8 @@ class ApiEndpoints {
   static String roleById(String id) => '/roles/$id';
 
   // // ============ Category Endpoints ============
-  // static const String categories = '/categories';
-  // static String categoryById(String id) => '/categories/$id';
+  static const String categories = '/categories';
+  static String categoryById(String id) => '/categories/$id';
 
   // ============ Auth Endpoints ============
   // Backend: app.use('/api/auth', authRoutes)

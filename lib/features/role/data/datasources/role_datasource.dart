@@ -15,5 +15,5 @@ abstract interface class IRoleRemoteDataSource {
   Future<RoleApiModel?> getRoleById(String roleId);
   Future<bool> createRole(RoleApiModel role);
   Future<bool> updateRole(RoleApiModel role);
-  // Future<bool> deleteRole(String roleId);
+  Future<bool> deleteRole(String roleId);
 }
