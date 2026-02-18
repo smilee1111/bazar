@@ -5,6 +5,8 @@ import 'package:bazar/core/utils/snackbar_utils.dart';
 import 'package:bazar/features/auth/presentation/pages/LoginPageScreen.dart';
 import 'package:bazar/features/auth/presentation/state/auth_state.dart';
 import 'package:bazar/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:bazar/features/auth/presentation/widgets/auth_google_button.dart';
+import 'package:bazar/features/auth/presentation/widgets/signup_header.dart';
 import 'package:bazar/features/role/presentation/state/role_state.dart';
 import 'package:bazar/features/role/presentation/view_model/role_view_model.dart';
 import 'package:flutter/material.dart';
@@ -122,24 +124,11 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        child: Image.asset('assets/images/bazarlogo.png',
-                        width: 90,
-                        height: 90,
-                        ),
-                      ),
-                      SizedBox(width: 20),
-                      Text("Let's get you\nshopping smarter.",
-                      style: AppTextStyle.h1,
-                      )
-                    ],
-                  ),
-                  SizedBox(height: 10),
+                  const SignupHeader(),
+                  const SizedBox(height: 10),
                   Text('enter your details below',
                   style: AppTextStyle.minimalTexts,),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                   TextFormField(
                   controller: _fullnameController,
                   keyboardType: TextInputType.text,
@@ -157,7 +146,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                       return null;
                     },
                   ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -177,7 +166,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                       return null;
                     },
                   ), 
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _phoneNumberController,
                   keyboardType: TextInputType.phone,
@@ -196,7 +185,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _usernameController,
                   keyboardType: TextInputType.text,
@@ -211,7 +200,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                     return null;
                     },
                 ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
                   initialValue: _selectedRole,
                   style: AppTextStyle.minimalTexts.copyWith(
@@ -247,7 +236,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -278,7 +267,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                       return null;
                     },
                   ),
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
@@ -309,7 +298,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                       return null;
                     },
                   ),
-                SizedBox(height: 15,),
+                const SizedBox(height: 15),
                 SizedBox(
                   width: 150,
                   child: ElevatedButton(
@@ -330,35 +319,7 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
                 child: Text("Already have an account? Sign In",
                 style: AppTextStyle.minimalTexts.copyWith(
                 decoration: TextDecoration.underline,))),
-                Container(
-                  width:500,
-                  height: 80,
-                  alignment: Alignment.centerRight,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10)
-                    ),
-                    child:
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                            onPressed: _handleGoogleSignUp,
-                            child: Text('Continue with Google', 
-                              style: AppTextStyle.minimalTexts,
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Image.asset('assets/icons/googlelogo.png',
-                          width: 30,
-                          height: 30)
-                        ],
-                      ),
-                    )
-                  )
+                AuthGoogleButton(onPressed: _handleGoogleSignUp),
                 ]
                   
               ),

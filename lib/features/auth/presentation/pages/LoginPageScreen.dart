@@ -1,10 +1,11 @@
 import 'package:bazar/app/routes/app_routes.dart';
-import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
 import 'package:bazar/features/auth/presentation/pages/SignupPageScreen.dart';
 import 'package:bazar/features/auth/presentation/state/auth_state.dart';
 import 'package:bazar/features/auth/presentation/view_model/auth_viewmodel.dart';
+import 'package:bazar/features/auth/presentation/widgets/auth_google_button.dart';
+import 'package:bazar/features/auth/presentation/widgets/login_header.dart';
 import 'package:bazar/features/dashboard/presentation/pages/DashboardScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,26 +84,7 @@ class _LoginpagescreenState extends ConsumerState<Loginpagescreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Text(
-                  'CLICK\n\nTYPE\n\nFIND\n\nyour shop.',
-                  style: AppTextStyle.h1,
-                ),
-                SizedBox(width:5),
-                SizedBox(
-                  width: 200,
-                  height: 300,
-                  child: Image.asset(
-                  'assets/images/image2.png',
-                  fit: BoxFit.cover,
-                  width: 100,
-                  height: 200,
-                ),
-                )
-                
-              ],
-            ),
+            const LoginHeader(),
             const SizedBox(height: 55),
             // USERNAME
             TextFormField(
@@ -156,7 +138,7 @@ class _LoginpagescreenState extends ConsumerState<Loginpagescreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 15,),
+            const SizedBox(height: 15),
             SizedBox(
               width: 150,
               child: ElevatedButton(
@@ -189,29 +171,7 @@ class _LoginpagescreenState extends ConsumerState<Loginpagescreen> {
               ),
             ),
             const SizedBox(height: 15),
-            Container(
-              width: double.infinity,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                            onPressed: _handleGoogleSignIn,
-                            child: Text('Continue with Google', 
-                              style: AppTextStyle.minimalTexts,
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Image.asset('assets/icons/googlelogo.png',
-                          width: 30,
-                          height: 30)
-                ],
-              ),
-            ),
+            AuthGoogleButton(onPressed: _handleGoogleSignIn),
 
             const SizedBox(height: 40),
           ],
