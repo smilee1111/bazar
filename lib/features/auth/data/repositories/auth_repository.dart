@@ -150,6 +150,27 @@ class AuthRepository implements IAuthRepository{
     if (await _networkInfo.isConnected) {
       try {
         final url = await _authRemoteDataSource.uploadPhoto(photo);
+        
+        // Update local Hive user to persist profilePic after app restart
+        try {
+          final localUser = await _authDataSource.getCurrentUser();
+          if (localUser != null) {
+            final updatedLocal = AuthHiveModel(
+              authId: localUser.authId,
+              fullName: localUser.fullName,
+              email: localUser.email,
+              phoneNumber: localUser.phoneNumber,
+              username: localUser.username,
+              password: localUser.password,
+              profilePic: url,
+              roleId: localUser.roleId,
+            );
+            await _authDataSource.updateUser(updatedLocal);
+          }
+        } catch (_) {
+          // Ignore local update errors - remote upload succeeded
+        }
+        
         return Right(url);
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));

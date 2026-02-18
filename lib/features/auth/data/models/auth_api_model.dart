@@ -57,6 +57,18 @@ class AuthApiModel {
 
     //fromJson
     factory AuthApiModel.fromJson(Map<String, dynamic> json){
+      // Handle roleId - can be either a String or a populated object
+      String? extractRoleId(dynamic roleIdValue) {
+        if (roleIdValue == null) return null;
+        if (roleIdValue is String) return roleIdValue;
+        if (roleIdValue is Map) {
+          // Backend populated roleId, extract the actual ID
+          final roleMap = Map<String, dynamic>.from(roleIdValue);
+          return roleMap['_id'] as String? ?? roleMap['roleId'] as String?;
+        }
+        return roleIdValue.toString();
+      }
+
       return AuthApiModel(
         id: json['_id'] as String?,
         fullName: json['fullName'] as String? ?? json['name'] as String? ?? '',
@@ -66,7 +78,7 @@ class AuthApiModel {
             : null,
         username: json['username'] as String? ?? '',
         profilePic: json['profilePic'] as String?,
-        roleId: json['roleId'] as String?,
+        roleId: extractRoleId(json['roleId']),
         role: json['role'] != null && json['role'] is Map
           ? RoleApiModel.fromJson(json['role'] as Map<String, dynamic>)
           : null,
