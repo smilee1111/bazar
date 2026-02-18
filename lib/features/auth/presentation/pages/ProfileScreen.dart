@@ -237,14 +237,16 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
             ),
           ),
           const SizedBox(height: 24),
-          ProfileContactCard(
+            ProfileContactCard(
             phoneNumber: authState.user?.phoneNumber ??
-                session.getCurrentUserPhoneNumber() ??
-                'Add phone number',
+              session.getCurrentUserPhoneNumber() ??
+              'Add phone number',
             email: authState.user?.email ??
-                session.getCurrentUserEmail() ??
-                'Add email',
-          ),
+              session.getCurrentUserEmail() ??
+              'Add email',
+            fullName: authState.user?.fullName ?? session.getCurrentUserFullName() ?? 'Your name',
+            username: authState.user?.username ?? session.getCurrentUserUsername() ?? 'username',
+            ),
           const SizedBox(height: 20),
           ProfileActionCard(
             onSettingsTap: () {

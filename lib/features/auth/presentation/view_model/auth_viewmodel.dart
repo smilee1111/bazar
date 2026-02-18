@@ -6,6 +6,8 @@ import 'package:bazar/features/auth/domain/usecases/login_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/register_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/upload_photo_usecase.dart';
+import 'package:bazar/features/auth/data/repositories/auth_repository.dart';
+import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/features/auth/presentation/state/auth_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -165,6 +167,76 @@ class AuthViewModel extends Notifier<AuthState>{
       roleId: user.roleId,
       role: user.role,
     );
+  }
+
+  Future<bool> updateProfile({
+    required String fullName,
+    required String email,
+    String? phoneNumber,
+    required String username,
+  }) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final current = state.user;
+    AuthEntity? baseUser = current;
+    if (baseUser == null) {
+      // Try to rebuild a minimal user from persisted session so updates still work after restart
+      final session = ref.read(userSessionServiceProvider);
+      final userId = session.getCurrentUserId();
+      if (userId == null || userId.isEmpty) {
+        state = state.copyWith(status: AuthStatus.error, errorMessage: 'No user available');
+        return false;
+      }
+      baseUser = AuthEntity(
+        authId: userId,
+        fullName: session.getCurrentUserFullName() ?? '',
+        email: session.getCurrentUserEmail() ?? '',
+        phoneNumber: session.getCurrentUserPhoneNumber(),
+        username: session.getCurrentUserUsername() ?? '',
+        password: null,
+        profilePic: session.getCurrentUserProfilePic(),
+        roleId: session.getCurrentUserRoleId(),
+        role: null,
+      );
+    }
+
+    final updated = AuthEntity(
+      authId: baseUser.authId,
+      fullName: fullName,
+      email: email,
+      phoneNumber: phoneNumber ?? baseUser.phoneNumber,
+      username: username,
+      password: baseUser.password,
+      profilePic: baseUser.profilePic,
+      roleId: baseUser.roleId,
+      role: baseUser.role,
+    );
+
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      final result = await repo.updateUser(updated);
+      return result.fold((failure) {
+        state = state.copyWith(status: AuthStatus.error, errorMessage: failure.message);
+        return false;
+      }, (success) {
+        // update in-memory state and session
+        state = state.copyWith(status: AuthStatus.loaded, user: updated);
+        final session = ref.read(userSessionServiceProvider);
+        // persist session; fire-and-forget to avoid blocking UI
+        session.saveUserSession(
+          userId: updated.authId ?? '',
+          email: updated.email,
+          fullName: updated.fullName,
+          username: updated.username,
+          phoneNumber: updated.phoneNumber,
+          roleId: updated.roleId,
+          profilePic: updated.profilePic,
+        );
+        return true;
+      });
+    } catch (e) {
+      state = state.copyWith(status: AuthStatus.error, errorMessage: e.toString());
+      return false;
+    }
   }
 
 

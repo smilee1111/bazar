@@ -117,12 +117,55 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
   @override
   Future<bool> updateUser(AuthApiModel user) async{
     final token = await _tokenService.getToken();
-    await _apiClient.put(
-      ApiEndpoints.adminUserById(user.id!),
-      data: user.toJson(),
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
-    );
-    return true;
+    if (token == null || token.isEmpty) {
+      throw Exception('Missing authentication token.');
+    }
+    try {
+      // Use the user profile endpoint so the logged-in user can update their own profile.
+      final response = await _apiClient.put(
+        ApiEndpoints.userUploadPhoto,
+        data: user.toJson(),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      final data = response.data['data'] as Map<String, dynamic>?;
+      if (data == null) {
+        throw Exception('Update succeeded but no user payload was returned.');
+      }
+
+      final updatedUser = AuthApiModel.fromJson(data);
+
+      // update local session
+      final profilePic = updatedUser.profilePic;
+      await _userSessionService.saveUserSession(
+        userId: updatedUser.id ?? user.id ?? '',
+        email: updatedUser.email,
+        fullName: updatedUser.fullName,
+        username: updatedUser.username,
+        phoneNumber: updatedUser.phoneNumber,
+        roleId: updatedUser.roleId,
+        profilePic: profilePic,
+      );
+
+      return true;
+    } on DioError catch (dioErr, stack) {
+      try {
+        print('DioError in AuthRemoteDatasource.updateUser -> ');
+        print('Status: ${dioErr.response?.statusCode}');
+        print('Response data: ${dioErr.response?.data}');
+        print('Request path: ${dioErr.requestOptions.path}');
+        print('Request headers: ${dioErr.requestOptions.headers}');
+        print('Request data: ${dioErr.requestOptions.data}');
+      } catch (e) {
+        print('Error while logging DioError details: $e');
+      }
+      print(stack);
+      rethrow;
+    } catch (e, stack) {
+      print('Unexpected error in AuthRemoteDatasource.updateUser: $e');
+      print(stack);
+      rethrow;
+    }
   }
 
 
@@ -138,41 +181,60 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
       throw Exception('Missing authentication token. Please login again.');
     }
 
-    final response = await _apiClient.put(
-      ApiEndpoints.userUploadPhoto,
-      data: formData,
-      options: Options(
-        headers: {'Authorization': 'Bearer $token'},
-        contentType: 'multipart/form-data',
-      ),
-    );
+    try {
+      final response = await _apiClient.put(
+        ApiEndpoints.userUploadPhoto,
+        data: formData,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          contentType: 'multipart/form-data',
+        ),
+      );
 
-    final data = response.data['data'] as Map<String, dynamic>?;
-    if (data == null) {
-      throw Exception('Upload succeeded but no user payload was returned.');
+      final data = response.data['data'] as Map<String, dynamic>?;
+      if (data == null) {
+        throw Exception('Upload succeeded but no user payload was returned.');
+      }
+
+      final updatedUser = AuthApiModel.fromJson(data);
+      final profilePic = updatedUser.profilePic;
+      if (profilePic == null || profilePic.isEmpty) {
+        throw Exception('Upload succeeded but no profilePic was returned.');
+      }
+
+      final userId = updatedUser.id;
+      if (userId == null || userId.isEmpty) {
+        throw Exception('Upload succeeded but user identifier was missing.');
+      }
+
+      await _userSessionService.saveUserSession(
+        userId: userId,
+        email: updatedUser.email,
+        fullName: updatedUser.fullName,
+        username: updatedUser.username,
+        phoneNumber: updatedUser.phoneNumber,
+        roleId: updatedUser.roleId,
+        profilePic: profilePic,
+      );
+
+      return profilePic;
+    } on DioError catch (dioErr, stack) {
+      try {
+        print('DioError in AuthRemoteDatasource.uploadPhoto -> ');
+        print('Status: ${dioErr.response?.statusCode}');
+        print('Response data: ${dioErr.response?.data}');
+        print('Request path: ${dioErr.requestOptions.path}');
+        print('Request headers: ${dioErr.requestOptions.headers}');
+        print('Request data: ${dioErr.requestOptions.data}');
+      } catch (e) {
+        print('Error while logging DioError details: $e');
+      }
+      print(stack);
+      rethrow;
+    } catch (e, stack) {
+      print('Unexpected error in AuthRemoteDatasource.uploadPhoto: $e');
+      print(stack);
+      rethrow;
     }
-
-    final updatedUser = AuthApiModel.fromJson(data);
-    final profilePic = updatedUser.profilePic;
-    if (profilePic == null || profilePic.isEmpty) {
-      throw Exception('Upload succeeded but no profilePic was returned.');
-    }
-
-    final userId = updatedUser.id;
-    if (userId == null || userId.isEmpty) {
-      throw Exception('Upload succeeded but user identifier was missing.');
-    }
-
-    await _userSessionService.saveUserSession(
-      userId: userId,
-      email: updatedUser.email,
-      fullName: updatedUser.fullName,
-      username: updatedUser.username,
-      phoneNumber: updatedUser.phoneNumber,
-      roleId: updatedUser.roleId,
-      profilePic: profilePic,
-    );
-
-    return profilePic;
   }
 }

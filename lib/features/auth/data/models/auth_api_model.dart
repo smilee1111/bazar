@@ -24,34 +24,42 @@ class AuthApiModel {
     this.role,
     });
 
-    //toJson - for registration
+    //toJson - for registration and updates
     Map<String, dynamic> toJson({String? roleName, String? confirmPassword}){
       final Map<String, dynamic> data = {
         "fullName": fullName,
         "email": email,
         "username": username,
-        "password": password,
-        "profilePic": profilePic,
-        "phoneNumber": phoneNumber != null && phoneNumber!.isNotEmpty 
-            ? int.tryParse(phoneNumber!) ?? 0 
+        // phoneNumber as int on API side, default to 0 when missing
+        "phoneNumber": phoneNumber != null && phoneNumber!.isNotEmpty
+            ? int.tryParse(phoneNumber!) ?? 0
             : 0,
       };
-      
+
+      // include optional fields only when present (avoid sending nulls)
+      if (password != null && password!.isNotEmpty) {
+        data["password"] = password;
+      }
+
+      if (profilePic != null && profilePic!.isNotEmpty) {
+        data["profilePic"] = profilePic;
+      }
+
       // Add role name if provided (for registration)
       if (roleName != null) {
         data["role"] = roleName;
       }
-      
+
       // Add confirmPassword if provided (for registration)
       if (confirmPassword != null) {
         data["confirmPassword"] = confirmPassword;
       }
-      
+
       // Add roleId if present (for internal use)
       if (roleId != null) {
         data["roleId"] = roleId;
       }
-      
+
       return data;
     }
 
