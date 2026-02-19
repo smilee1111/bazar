@@ -16,7 +16,6 @@ void main() {
     );
 
     final json = model.toJson(
-      roleName: "user",
       confirmPassword: "password123",
     );
 
