@@ -43,9 +43,19 @@ class SellerApplicationRemoteDatasource
   @override
   Future<SellerApplicationApiModel?> getMySellerApplication() async {
     final response = await _apiClient.get(ApiEndpoints.mySellerApplication);
-    if (response.data['success'] == true) {
-      final data = response.data['data'] as Map<String, dynamic>;
-      return SellerApplicationApiModel.fromJson(data);
+    final payload = response.data;
+    if (payload is Map<String, dynamic> && payload['success'] == true) {
+      final data = payload['data'];
+      if (data == null) return null;
+
+      if (data is Map<String, dynamic>) {
+        // Support both {data: {...}} and {data: {application: {...}}}
+        final application = data['application'];
+        if (application is Map<String, dynamic>) {
+          return SellerApplicationApiModel.fromJson(application);
+        }
+        return SellerApplicationApiModel.fromJson(data);
+      }
     }
     return null;
   }

@@ -18,6 +18,7 @@ class SellerApplicationViewModel extends Notifier<SellerApplicationState> {
   late final GetMySellerApplicationUsecase _getMySellerApplicationUsecase;
   late final UploadSellerDocumentUsecase _uploadSellerDocumentUsecase;
   late final UserSessionService _sessionService;
+  String? _activeUserId;
 
   @override
   SellerApplicationState build() {
@@ -35,6 +36,21 @@ class SellerApplicationViewModel extends Notifier<SellerApplicationState> {
   }
 
   Future<void> fetchMyApplication({bool forceRefresh = false}) async {
+    final currentUserId = _sessionService.getCurrentUserId();
+    if (currentUserId == null || currentUserId.isEmpty) {
+      state = const SellerApplicationState(
+        hasFetched: true,
+        errorMessage: 'User session not found. Please login again.',
+      );
+      return;
+    }
+
+    if (_activeUserId != currentUserId) {
+      _activeUserId = currentUserId;
+      state = const SellerApplicationState();
+      forceRefresh = true;
+    }
+
     if (state.isLoading) return;
     if (!forceRefresh && state.hasFetched) return;
 
@@ -146,5 +162,10 @@ class SellerApplicationViewModel extends Notifier<SellerApplicationState> {
 
   void clearError() {
     state = state.copyWith(clearError: true);
+  }
+
+  void resetState() {
+    _activeUserId = null;
+    state = const SellerApplicationState();
   }
 }

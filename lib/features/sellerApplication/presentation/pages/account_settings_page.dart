@@ -1,5 +1,7 @@
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
+import 'package:bazar/features/category/domain/entities/category_entity.dart';
+import 'package:bazar/features/category/domain/usecases/get_all_category_usecase.dart';
 import 'package:bazar/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:bazar/features/sellerApplication/domain/entities/seller_application_entity.dart';
 import 'package:bazar/features/sellerApplication/presentation/pages/seller_application_page.dart';
@@ -11,18 +13,33 @@ class AccountSettingsPage extends ConsumerStatefulWidget {
   const AccountSettingsPage({super.key});
 
   @override
-  ConsumerState<AccountSettingsPage> createState() => _AccountSettingsPageState();
+  ConsumerState<AccountSettingsPage> createState() =>
+      _AccountSettingsPageState();
 }
 
 class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
+  List<CategoryEntity> _categories = const [];
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref
+    Future.microtask(() async {
+      await _loadCategories();
+      if (!mounted) return;
+      await ref
           .read(sellerApplicationViewModelProvider.notifier)
-          .fetchMyApplication(),
-    );
+          .fetchMyApplication();
+    });
+  }
+
+  Future<void> _loadCategories() async {
+    final result = await ref.read(getAllCategoryUseCaseProvider)();
+    if (!mounted) return;
+    result.fold((_) {}, (categories) {
+      setState(() {
+        _categories = categories;
+      });
+    });
   }
 
   bool _isAlreadySeller() {
@@ -101,7 +118,10 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
                   },
                 )
               else
-                _ApplicationCard(application: app),
+                _ApplicationCard(
+                  application: app,
+                  resolvedCategoryName: _resolveCategoryName(app.categoryName),
+                ),
               if (app != null &&
                   app.status == SellerApplicationStatus.rejected) ...[
                 const SizedBox(height: 14),
@@ -134,6 +154,27 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
         ),
       ),
     );
+  }
+
+  String _resolveCategoryName(String rawValue) {
+    if (_categories.isEmpty) return rawValue;
+    final matchById = _categories
+        .where((category) => category.categoryId == rawValue)
+        .toList();
+    if (matchById.isNotEmpty) {
+      return matchById.first.categoryName;
+    }
+
+    final matchByName = _categories
+        .where(
+          (category) =>
+              category.categoryName.toLowerCase() == rawValue.toLowerCase(),
+        )
+        .toList();
+    if (matchByName.isNotEmpty) {
+      return matchByName.first.categoryName;
+    }
+    return rawValue;
   }
 }
 
@@ -239,9 +280,13 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _ApplicationCard extends StatelessWidget {
-  const _ApplicationCard({required this.application});
+  const _ApplicationCard({
+    required this.application,
+    required this.resolvedCategoryName,
+  });
 
   final SellerApplicationEntity application;
+  final String resolvedCategoryName;
 
   Color _statusColor(SellerApplicationStatus status) {
     switch (status) {
@@ -290,7 +335,10 @@ class _ApplicationCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
@@ -306,7 +354,7 @@ class _ApplicationCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _InfoRow(label: 'Category', value: application.categoryName),
+          _InfoRow(label: 'Category', value: resolvedCategoryName),
           _InfoRow(label: 'Phone', value: application.businessPhone),
           _InfoRow(label: 'Address', value: application.businessAddress),
           if ((application.description ?? '').isNotEmpty)

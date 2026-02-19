@@ -43,6 +43,7 @@ class ApiEndpoints {
 
   // // ============ Category Endpoints ============
   static const String categories = '/categories';
+  static const String userCategories = '/user/categories';
   static String categoryById(String id) => '/categories/$id';
 
   // ============ Seller Application Endpoints ============

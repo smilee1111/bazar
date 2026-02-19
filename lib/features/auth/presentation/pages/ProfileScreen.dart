@@ -11,6 +11,7 @@ import 'package:bazar/features/auth/presentation/widgets/profile_contact_card.da
 import 'package:bazar/features/auth/presentation/widgets/media_picker_bottom_sheet.dart';
 import 'package:bazar/features/auth/presentation/widgets/profile_hero.dart';
 import 'package:bazar/features/sellerApplication/presentation/pages/settings_page.dart';
+import 'package:bazar/features/sellerApplication/presentation/view_model/seller_application_view_model.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +35,7 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
     super.dispose();
   }
 
-    Future<bool> _requestPermission(Permission permission) async {
+  Future<bool> _requestPermission(Permission permission) async {
     final status = await permission.status;
     if (status.isGranted) return true;
 
@@ -51,8 +52,7 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
     return false;
   }
 
-
-    void _showPermissionDeniedDialog() {
+  void _showPermissionDeniedDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -77,7 +77,6 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
     );
   }
 
-  
   Future<void> _pickFromCamera() async {
     final hasPermission = await _requestPermission(Permission.camera);
     if (!hasPermission) return;
@@ -97,82 +96,80 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
     }
   }
 
-  
-    Future<bool> _ensureGalleryPermission() async {
-      Future<bool> requestPhotos() async {
-        final status = await Permission.photos.status;
+  Future<bool> _ensureGalleryPermission() async {
+    Future<bool> requestPhotos() async {
+      final status = await Permission.photos.status;
 
-        if (status.isGranted || status.isLimited) {
-          return true;
-        }
-
-        if (status.isDenied) {
-          final refreshedStatus = await Permission.photos.request();
-          if (refreshedStatus.isGranted || refreshedStatus.isLimited) {
-            return true;
-          }
-          if (refreshedStatus.isPermanentlyDenied) {
-            _showPermissionDeniedDialog();
-            return false;
-          }
-        }
-
-        if (status.isPermanentlyDenied) {
-          _showPermissionDeniedDialog();
-          return false;
-        }
-
-        return false;
-      }
-
-      if (await requestPhotos()) {
+      if (status.isGranted || status.isLimited) {
         return true;
       }
 
-      if (Platform.isAndroid) {
-        return _requestPermission(Permission.storage);
+      if (status.isDenied) {
+        final refreshedStatus = await Permission.photos.request();
+        if (refreshedStatus.isGranted || refreshedStatus.isLimited) {
+          return true;
+        }
+        if (refreshedStatus.isPermanentlyDenied) {
+          _showPermissionDeniedDialog();
+          return false;
+        }
+      }
+
+      if (status.isPermanentlyDenied) {
+        _showPermissionDeniedDialog();
+        return false;
       }
 
       return false;
     }
 
-    Future<void> _pickFromGallery() async {
-      final hasPermission = await _ensureGalleryPermission();
-      if (!hasPermission) return;
-
-      try {
-        final XFile? image = await _imagePicker.pickImage(
-          source: ImageSource.gallery,
-          imageQuality: 80,
-        );
-
-        if (image != null) {
-          setState(() {
-            _profilePhoto = image;
-          });
-          await ref
-              .read(authViewModelProvider.notifier)
-              .uploadPhoto(File(image.path));
-        }
-      } catch (e) {
-        debugPrint('Gallery Error $e');
-        if (mounted) {
-          SnackbarUtils.showError(
-            context,
-            'Unable to access gallery. Please try using the camera instead.',
-          );
-        }
-      }
+    if (await requestPhotos()) {
+      return true;
     }
 
-    void _showMediaPicker() {
+    if (Platform.isAndroid) {
+      return _requestPermission(Permission.storage);
+    }
+
+    return false;
+  }
+
+  Future<void> _pickFromGallery() async {
+    final hasPermission = await _ensureGalleryPermission();
+    if (!hasPermission) return;
+
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() {
+          _profilePhoto = image;
+        });
+        await ref
+            .read(authViewModelProvider.notifier)
+            .uploadPhoto(File(image.path));
+      }
+    } catch (e) {
+      debugPrint('Gallery Error $e');
+      if (mounted) {
+        SnackbarUtils.showError(
+          context,
+          'Unable to access gallery. Please try using the camera instead.',
+        );
+      }
+    }
+  }
+
+  void _showMediaPicker() {
     MediaPickerBottomSheet.show(
       context,
       onCameraTap: _pickFromCamera,
       onGalleryTap: _pickFromGallery,
     );
   }
-
 
   String? _resolveImageUrl(String? path) {
     if (path == null || path.isEmpty) return null;
@@ -184,13 +181,15 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
     final session = ref.read(userSessionServiceProvider);
-    final remotePicturePath = authState.uploadedUrl ??
+    final remotePicturePath =
+        authState.uploadedUrl ??
         authState.user?.profilePic ??
         session.getCurrentUserProfilePic();
     final resolvedRemoteUrl = _resolveImageUrl(remotePicturePath);
-    final usernameDisplay = authState.user?.username ??
-      session.getCurrentUserUsername() ??
-      'Your username';
+    final usernameDisplay =
+        authState.user?.username ??
+        session.getCurrentUserUsername() ??
+        'Your username';
 
     ImageProvider? profileImageProvider;
     if (_profilePhoto != null) {
@@ -225,47 +224,55 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         child: Column(
           children: [
-          ProfileHero(
-            profileImageProvider: profileImageProvider,
-            onEditTap: _showMediaPicker,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            usernameDisplay,
-            style: AppTextStyle.inputBox.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+            ProfileHero(
+              profileImageProvider: profileImageProvider,
+              onEditTap: _showMediaPicker,
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 8),
+            Text(
+              usernameDisplay,
+              style: AppTextStyle.inputBox.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 24),
             ProfileContactCard(
-            phoneNumber: authState.user?.phoneNumber ??
-              session.getCurrentUserPhoneNumber() ??
-              'Add phone number',
-            email: authState.user?.email ??
-              session.getCurrentUserEmail() ??
-              'Add email',
-            fullName: authState.user?.fullName ?? session.getCurrentUserFullName() ?? 'Your name',
-            username: authState.user?.username ?? session.getCurrentUserUsername() ?? 'username',
+              phoneNumber:
+                  authState.user?.phoneNumber ??
+                  session.getCurrentUserPhoneNumber() ??
+                  'Add phone number',
+              email:
+                  authState.user?.email ??
+                  session.getCurrentUserEmail() ??
+                  'Add email',
+              fullName:
+                  authState.user?.fullName ??
+                  session.getCurrentUserFullName() ??
+                  'Your name',
+              username:
+                  authState.user?.username ??
+                  session.getCurrentUserUsername() ??
+                  'username',
             ),
-          const SizedBox(height: 20),
-          ProfileActionCard(
-            onSettingsTap: () {
-              AppRoutes.push(
-                context,
-                const SettingsPage(),
-              );
-            },
-            onLogoutTap: () async {
-              await ref.read(authViewModelProvider.notifier).logout();
-              if (context.mounted) {
-                AppRoutes.pushAndRemoveUntil(
-                  context,
-                  const Loginpagescreen(),
-                );
-              }
-            },
-          ),
+            const SizedBox(height: 20),
+            ProfileActionCard(
+              onSettingsTap: () {
+                AppRoutes.push(context, const SettingsPage());
+              },
+              onLogoutTap: () async {
+                ref
+                    .read(sellerApplicationViewModelProvider.notifier)
+                    .resetState();
+                await ref.read(authViewModelProvider.notifier).logout();
+                if (context.mounted) {
+                  AppRoutes.pushAndRemoveUntil(
+                    context,
+                    const Loginpagescreen(),
+                  );
+                }
+              },
+            ),
           ],
         ),
       ),

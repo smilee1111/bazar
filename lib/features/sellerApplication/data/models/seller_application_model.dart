@@ -28,17 +28,38 @@ class SellerApplicationApiModel {
 
   // from JSON
   factory SellerApplicationApiModel.fromJson(Map<String, dynamic> json) {
+    String? asString(dynamic value) {
+      if (value == null) return null;
+      if (value is String) return value;
+      if (value is num || value is bool) return value.toString();
+      if (value is Map<String, dynamic>) {
+        final id = value['_id'] ?? value['id'];
+        if (id is String) return id;
+        return null;
+      }
+      return null;
+    }
+
+    String requiredString(dynamic value, {String fallback = ''}) {
+      return asString(value) ?? fallback;
+    }
+
+    final resolvedStatus = requiredString(
+      json['status'],
+      fallback: 'pending',
+    ).toLowerCase();
+
     return SellerApplicationApiModel(
-      applicationId: json['_id'] as String?,
-      userId: json['userId'] as String,
-      businessName: json['businessName'] as String,
-      categoryName: json['categoryName'] as String,
-      businessPhone: json['businessPhone'] as String,
-      businessAddress: json['businessAddress'] as String,
-      description: json['description'] as String?,
-      documentUrl: json['documentUrl'] as String?,
-      status: json['status'] as String,
-      adminRemark: json['adminRemark'] as String?,
+      applicationId: asString(json['_id']),
+      userId: requiredString(json['userId']),
+      businessName: requiredString(json['businessName']),
+      categoryName: requiredString(json['categoryName']),
+      businessPhone: requiredString(json['businessPhone']),
+      businessAddress: requiredString(json['businessAddress']),
+      description: asString(json['description']),
+      documentUrl: asString(json['documentUrl']),
+      status: resolvedStatus.isEmpty ? 'pending' : resolvedStatus,
+      adminRemark: asString(json['adminRemark']),
     );
   }
 
@@ -57,16 +78,16 @@ class SellerApplicationApiModel {
 
   // Convert to Entity
   SellerApplicationEntity toEntity() {
-    SellerApplicationStatus _status;
+    SellerApplicationStatus parsedStatus;
     switch (status) {
       case 'approved':
-        _status = SellerApplicationStatus.approved;
+        parsedStatus = SellerApplicationStatus.approved;
         break;
       case 'rejected':
-        _status = SellerApplicationStatus.rejected;
+        parsedStatus = SellerApplicationStatus.rejected;
         break;
       default:
-        _status = SellerApplicationStatus.pending;
+        parsedStatus = SellerApplicationStatus.pending;
     }
 
     return SellerApplicationEntity(
@@ -78,23 +99,23 @@ class SellerApplicationApiModel {
       businessAddress: businessAddress,
       description: description,
       documentUrl: documentUrl,
-      status: _status,
+      status: parsedStatus,
       adminRemark: adminRemark,
     );
   }
 
   // Create API Model from Entity
   factory SellerApplicationApiModel.fromEntity(SellerApplicationEntity entity) {
-    String _status;
+    String statusValue;
     switch (entity.status) {
       case SellerApplicationStatus.approved:
-        _status = 'approved';
+        statusValue = 'approved';
         break;
       case SellerApplicationStatus.rejected:
-        _status = 'rejected';
+        statusValue = 'rejected';
         break;
       default:
-        _status = 'pending';
+        statusValue = 'pending';
     }
 
     return SellerApplicationApiModel(
@@ -105,7 +126,7 @@ class SellerApplicationApiModel {
       businessAddress: entity.businessAddress,
       description: entity.description,
       documentUrl: entity.documentUrl,
-      status: _status,
+      status: statusValue,
       adminRemark: entity.adminRemark,
     );
   }

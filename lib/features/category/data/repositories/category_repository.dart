@@ -17,9 +17,9 @@ final categoryRepositoryProvider = Provider<IcategoryRepository>((ref) {
   final networkInfo = ref.read(networkInfoProvider);
 
   return CategoryRepository(
-  categoryLocalDatasource: categoryLocalDatasource,
-  categoryRemoteDatasource: categoryRemoteDatasource,
-  networkInfo: networkInfo
+    categoryLocalDatasource: categoryLocalDatasource,
+    categoryRemoteDatasource: categoryRemoteDatasource,
+    networkInfo: networkInfo,
   );
 });
 
@@ -29,12 +29,25 @@ class CategoryRepository implements IcategoryRepository {
   final NetworkInfo _networkInfo;
 
   CategoryRepository({
-  required ICategoryLocalDataSource categoryLocalDatasource,
-  required ICategoryRemoteDataSource categoryRemoteDatasource, 
-  required NetworkInfo  networkInfo,})
-    : _categoryLocalDataSource = categoryLocalDatasource,
-    _categoryRemoteDataSource = categoryRemoteDatasource,
-    _networkInfo = networkInfo;
+    required ICategoryLocalDataSource categoryLocalDatasource,
+    required ICategoryRemoteDataSource categoryRemoteDatasource,
+    required NetworkInfo networkInfo,
+  }) : _categoryLocalDataSource = categoryLocalDatasource,
+       _categoryRemoteDataSource = categoryRemoteDatasource,
+       _networkInfo = networkInfo;
+
+  String _extractErrorMessage(Object? data, String fallback) {
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if (message is String && message.isNotEmpty) {
+        return message;
+      }
+    }
+    if (data is String && data.isNotEmpty) {
+      return data;
+    }
+    return fallback;
+  }
 
   @override
   Future<Either<Failure, bool>> createCategory(CategoryEntity category) async {
@@ -42,7 +55,9 @@ class CategoryRepository implements IcategoryRepository {
       // conversion
       // entity lai model ma convert gara
       final categoryModel = CategoryHiveModel.fromEntity(category);
-      final result = await _categoryLocalDataSource.createCategory(categoryModel);
+      final result = await _categoryLocalDataSource.createCategory(
+        categoryModel,
+      );
       if (result) {
         return const Right(true);
       }
@@ -71,36 +86,41 @@ class CategoryRepository implements IcategoryRepository {
   @override
   Future<Either<Failure, List<CategoryEntity>>> getAllCategorys() async {
     //check for internet first
-    if(await _networkInfo.isConnected){
-      try{
+    if (await _networkInfo.isConnected) {
+      try {
         //api model capture
-        final apiModels = await  _categoryRemoteDataSource.getAllCategories();
+        final apiModels = await _categoryRemoteDataSource.getAllCategories();
         //convert to entity
         final result = CategoryApiModel.toEntityList(apiModels);
         return Right(result);
-      }
-      on DioException catch (e) {
-        return Left(ApiFailure(
-          statusCode: e.response?.statusCode,
-          message: e.response?.data['message']?? 'Failed to fetch categorys'
-        ));
-      }catch (e) {
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            statusCode: e.response?.statusCode,
+            message: _extractErrorMessage(
+              e.response?.data,
+              'Failed to fetch categories',
+            ),
+          ),
+        );
+      } catch (e) {
         return Left(LocalDatabaseFailure(message: e.toString()));
       }
-    }else{
-    try {
-      final models = await _categoryLocalDataSource.getAllCategories();
-      final entities = CategoryHiveModel.toEntityList(models);
-      return Right(entities);
-    } catch (e) {
-      return Left(LocalDatabaseFailure(message: e.toString()));
+    } else {
+      try {
+        final models = await _categoryLocalDataSource.getAllCategories();
+        final entities = CategoryHiveModel.toEntityList(models);
+        return Right(entities);
+      } catch (e) {
+        return Left(LocalDatabaseFailure(message: e.toString()));
+      }
     }
-    }
-    
   }
 
   @override
-  Future<Either<Failure, CategoryEntity>> getCategoryById(String categoryId) async {
+  Future<Either<Failure, CategoryEntity>> getCategoryById(
+    String categoryId,
+  ) async {
     try {
       final model = await _categoryLocalDataSource.getCategoryById(categoryId);
       if (model != null) {
@@ -117,7 +137,9 @@ class CategoryRepository implements IcategoryRepository {
   Future<Either<Failure, bool>> updateCategory(CategoryEntity category) async {
     try {
       final categoryModel = CategoryHiveModel.fromEntity(category);
-      final result = await _categoryLocalDataSource.updateCategory(categoryModel);
+      final result = await _categoryLocalDataSource.updateCategory(
+        categoryModel,
+      );
       if (result) {
         return const Right(true);
       }

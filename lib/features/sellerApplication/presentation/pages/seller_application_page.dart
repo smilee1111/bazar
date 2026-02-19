@@ -102,7 +102,7 @@ class _SellerApplicationPageState extends ConsumerState<SellerApplicationPage> {
 
         setState(() {
           _isLoadingCategories = false;
-          _categoriesError = null;
+          _categoriesError = items.isEmpty ? 'No categories found.' : null;
           _categories = items;
         });
       },
