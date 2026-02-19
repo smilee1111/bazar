@@ -17,7 +17,9 @@ class ApiEndpoints {
 
     // Configuration
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '192.168.101.11';
+  static const String _ipAddress = '192.168.1.93';
+  //192.168.1.93
+  //192.168.101.11'
   static const int _port = 5050;
 
     // Base URLs
@@ -43,6 +45,15 @@ class ApiEndpoints {
   // // ============ Category Endpoints ============
   static const String categories = '/categories';
   static String categoryById(String id) => '/categories/$id';
+
+    // ============ Seller Application Endpoints ============
+  static const String sellerApplications = '/seller-applications';
+  static const String mySellerApplication = '/seller-applications/my';
+
+
+  // // ============ Shop Endpoints ============
+  static const String shops = '/shops';
+  static String shopById(String id) => '/shops/$id';
 
   // ============ Auth Endpoints ============
   // Backend: app.use('/api/auth', authRoutes)

@@ -57,7 +57,6 @@ class CategoryHiveService {
 //OPEN BOXES
   Future<void> _openBoxes() async {
     await Hive.openBox<CategoryHiveModel>(HiveTableConstant.categoryTable);
-    await Hive.openBox<AuthHiveModel>(HiveTableConstant.userTable);
 
   }
 
@@ -67,7 +66,7 @@ class CategoryHiveService {
   }
 
 
-//ROLE METHODS
+//CATEGORY METHODS
    Box<CategoryHiveModel> get _categoryBox =>
     Hive.box<CategoryHiveModel>(HiveTableConstant.categoryTable);
 
