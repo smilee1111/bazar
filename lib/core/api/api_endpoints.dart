@@ -14,15 +14,14 @@ class ApiEndpoints {
   // For iOS Simulator use: 'http://localhost:5050/api'
   // For Physical Device use your computer's IP: 'http://192.168.x.x:5050/api'
 
-
-    // Configuration
+  // Configuration
   static const bool isPhysicalDevice = true;
   static const String _ipAddress = '192.168.1.93';
   //192.168.1.93
   //192.168.101.11'
   static const int _port = 5050;
 
-    // Base URLs
+  // Base URLs
   static String get _host {
     if (isPhysicalDevice) return _ipAddress;
     if (kIsWeb || Platform.isIOS) return 'localhost';
@@ -46,10 +45,11 @@ class ApiEndpoints {
   static const String categories = '/categories';
   static String categoryById(String id) => '/categories/$id';
 
-    // ============ Seller Application Endpoints ============
-  static const String sellerApplications = '/seller-applications';
-  static const String mySellerApplication = '/seller-applications/my';
-
+  // ============ Seller Application Endpoints ============
+  static const String sellerApplications = '/user/seller-applications';
+  static const String mySellerApplication = '/user/seller-applications/my';
+  static const String sellerApplicationUploadDocument =
+      '/user/seller-applications/upload-document';
 
   // // ============ Shop Endpoints ============
   static const String shops = '/shops';
@@ -60,7 +60,7 @@ class ApiEndpoints {
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';
   static const String userUploadPhoto = '/auth/update-profile';
-    static String userPicture(String filename) =>
+  static String userPicture(String filename) =>
       '$mediaServerUrl/user_photos/$filename';
 
   // ============ Admin User Endpoints ============

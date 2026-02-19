@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bazar/core/error/failure.dart';
 import 'package:bazar/core/services/connectivity/network_info.dart';
 import 'package:bazar/features/sellerApplication/data/datasources/seller_application_remote_datasource.dart';
@@ -8,14 +10,15 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final sellerApplicationRepositoryProvider = Provider<ISellerApplicationRepository>((ref) {
-  final remoteDatasource = ref.read(sellerApplicationRemoteProvider);
-  final networkInfo = ref.read(networkInfoProvider);
-  return SellerApplicationRepository(
-    remoteDatasource: remoteDatasource,
-    networkInfo: networkInfo,
-  );
-});
+final sellerApplicationRepositoryProvider =
+    Provider<ISellerApplicationRepository>((ref) {
+      final remoteDatasource = ref.read(sellerApplicationRemoteProvider);
+      final networkInfo = ref.read(networkInfoProvider);
+      return SellerApplicationRepository(
+        remoteDatasource: remoteDatasource,
+        networkInfo: networkInfo,
+      );
+    });
 
 class SellerApplicationRepository implements ISellerApplicationRepository {
   final ISellerApplicationRemoteDataSource _remoteDatasource;
@@ -24,21 +27,41 @@ class SellerApplicationRepository implements ISellerApplicationRepository {
   SellerApplicationRepository({
     required ISellerApplicationRemoteDataSource remoteDatasource,
     required NetworkInfo networkInfo,
-  })  : _remoteDatasource = remoteDatasource,
-        _networkInfo = networkInfo;
+  }) : _remoteDatasource = remoteDatasource,
+       _networkInfo = networkInfo;
+
+  String _extractErrorMessage(Object? data, String fallback) {
+    if (data is Map<String, dynamic>) {
+      final message = data['message'];
+      if (message is String && message.isNotEmpty) {
+        return message;
+      }
+    }
+    if (data is String && data.isNotEmpty) {
+      return data;
+    }
+    return fallback;
+  }
 
   @override
   Future<Either<Failure, SellerApplicationEntity>> createSellerApplication(
-      SellerApplicationEntity application) async {
+    SellerApplicationEntity application,
+  ) async {
     if (await _networkInfo.isConnected) {
       try {
         final model = SellerApplicationApiModel.fromEntity(application);
         final response = await _remoteDatasource.createSellerApplication(model);
         return Right(response.toEntity());
       } on DioException catch (e) {
-        return Left(ApiFailure(
+        return Left(
+          ApiFailure(
             statusCode: e.response?.statusCode,
-            message: e.response?.data['message'] ?? 'Failed to create seller application'));
+            message: _extractErrorMessage(
+              e.response?.data,
+              'Failed to create seller application',
+            ),
+          ),
+        );
       } catch (e) {
         return Left(LocalDatabaseFailure(message: e.toString()));
       }
@@ -48,7 +71,8 @@ class SellerApplicationRepository implements ISellerApplicationRepository {
   }
 
   @override
-  Future<Either<Failure, SellerApplicationEntity?>> getMySellerApplication() async {
+  Future<Either<Failure, SellerApplicationEntity?>>
+  getMySellerApplication() async {
     if (await _networkInfo.isConnected) {
       try {
         final response = await _remoteDatasource.getMySellerApplication();
@@ -57,9 +81,43 @@ class SellerApplicationRepository implements ISellerApplicationRepository {
         }
         return const Right(null);
       } on DioException catch (e) {
-        return Left(ApiFailure(
+        if (e.response?.statusCode == 404) {
+          // Backend may return 404 when user has not applied yet.
+          return const Right(null);
+        }
+        return Left(
+          ApiFailure(
             statusCode: e.response?.statusCode,
-            message: e.response?.data['message'] ?? 'Failed to fetch seller application'));
+            message: _extractErrorMessage(
+              e.response?.data,
+              'Failed to fetch seller application',
+            ),
+          ),
+        );
+      } catch (e) {
+        return Left(LocalDatabaseFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> uploadSellerDocument(File document) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final url = await _remoteDatasource.uploadSellerDocument(document);
+        return Right(url);
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            statusCode: e.response?.statusCode,
+            message: _extractErrorMessage(
+              e.response?.data,
+              'Failed to upload document',
+            ),
+          ),
+        );
       } catch (e) {
         return Left(LocalDatabaseFailure(message: e.toString()));
       }

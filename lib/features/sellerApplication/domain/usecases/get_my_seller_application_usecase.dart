@@ -15,14 +15,14 @@ final getMySellerApplicationUsecaseProvider =
 });
 
 class GetMySellerApplicationUsecase
-    implements UsecaseWithoutParams<Either<Failure, SellerApplicationEntity?>> {
+    implements UsecaseWithoutParams<SellerApplicationEntity?> {
   final ISellerApplicationRepository _repository;
 
   GetMySellerApplicationUsecase({required ISellerApplicationRepository repository})
       : _repository = repository;
 
   @override
-  Future<Either<Failure, Either<Failure, SellerApplicationEntity?>>> call() {
-    return _repository.getMySellerApplication().then((result) => Right(result));
+  Future<Either<Failure, SellerApplicationEntity?>> call() {
+    return _repository.getMySellerApplication();
   }
 }

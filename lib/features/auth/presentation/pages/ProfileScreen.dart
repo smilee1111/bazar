@@ -10,6 +10,7 @@ import 'package:bazar/features/auth/presentation/widgets/profile_action_card.dar
 import 'package:bazar/features/auth/presentation/widgets/profile_contact_card.dart';
 import 'package:bazar/features/auth/presentation/widgets/media_picker_bottom_sheet.dart';
 import 'package:bazar/features/auth/presentation/widgets/profile_hero.dart';
+import 'package:bazar/features/sellerApplication/presentation/pages/settings_page.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -250,9 +251,9 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
           const SizedBox(height: 20),
           ProfileActionCard(
             onSettingsTap: () {
-              SnackbarUtils.showInfo(
+              AppRoutes.push(
                 context,
-                'Settings coming soon.',
+                const SettingsPage(),
               );
             },
             onLogoutTap: () async {
