@@ -23,7 +23,7 @@ class ShopApiModel {
     this.email,
   });
 
-  String? _asString(dynamic value) {
+  static String? _asString(dynamic value) {
     if (value == null) return null;
     if (value is String) return value;
     if (value is num || value is bool) return value.toString();
@@ -35,19 +35,18 @@ class ShopApiModel {
   }
 
   factory ShopApiModel.fromJson(Map<String, dynamic> json) {
-    final helper = ShopApiModel(shopName: '', shopAddress: '', shopContact: '');
-    String requiredString(dynamic value) => helper._asString(value) ?? '';
+    String requiredString(dynamic value) => _asString(value) ?? '';
 
     return ShopApiModel(
-      shopId: helper._asString(json['_id'] ?? json['shopId']),
-      ownerId: helper._asString(json['ownerId']),
+      shopId: _asString(json['_id'] ?? json['shopId']),
+      ownerId: _asString(json['ownerId']),
       shopName: requiredString(json['shopName']),
-      slug: helper._asString(json['slug']),
-      description: helper._asString(json['description']),
+      slug: _asString(json['slug']),
+      description: _asString(json['description']),
       shopAddress: requiredString(json['shopAddress']),
       shopContact: requiredString(json['shopContact']),
-      contactNumber: helper._asString(json['contactNumber']),
-      email: helper._asString(json['email']),
+      contactNumber: _asString(json['contactNumber']),
+      email: _asString(json['email']),
     );
   }
 
