@@ -8,6 +8,7 @@ import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_content_view_model.dart';
 import 'package:bazar/features/shop/presentation/widgets/shop_content_sections.dart';
 import 'package:bazar/features/shopPhoto/domain/entities/shop_photo_entity.dart';
+import 'package:bazar/features/shopReview/domain/entities/shop_review_entity.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,15 +30,15 @@ class ShopPublicDetailPage extends ConsumerStatefulWidget {
 
 class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
   bool _isOwner = false;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
     _isOwner = widget.allowOwnerEdit;
     Future.microtask(() async {
-      final sessionUserId = ref
-          .read(userSessionServiceProvider)
-          .getCurrentUserId();
+      _currentUserId = ref.read(userSessionServiceProvider).getCurrentUserId();
+      final sessionUserId = _currentUserId;
       final ownerMatch =
           sessionUserId != null &&
           widget.shop.ownerId != null &&
@@ -186,6 +187,10 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
   }
 
   Future<void> _showReviewSheet() async {
+    if (_isOwner) {
+      SnackbarUtils.showWarning(context, 'You cannot review your own shop.');
+      return;
+    }
     final reviewCtrl = TextEditingController();
     int stars = 5;
     await showModalBottomSheet(
@@ -213,17 +218,12 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                   Row(
                     children: [
                       const Text('Rating'),
-                      Expanded(
-                        child: Slider(
-                          value: stars.toDouble(),
-                          divisions: 4,
-                          min: 1,
-                          max: 5,
-                          label: '$stars',
-                          onChanged: (value) {
-                            setSheetState(() => stars = value.round());
-                          },
-                        ),
+                      const SizedBox(width: 12),
+                      _StarRatingInput(
+                        value: stars,
+                        onChanged: (value) {
+                          setSheetState(() => stars = value);
+                        },
                       ),
                     ],
                   ),
@@ -265,6 +265,133 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
         );
       },
     );
+  }
+
+  Future<void> _showEditReviewSheet(ShopReviewEntity review) async {
+    if (!_canEditReview(review) || review.reviewId == null) {
+      SnackbarUtils.showWarning(context, 'You can only edit your own review.');
+      return;
+    }
+    final reviewCtrl = TextEditingController(text: review.reviewName);
+    int stars = review.starNum.clamp(1, 5);
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: reviewCtrl,
+                    maxLines: 3,
+                    decoration: const InputDecoration(labelText: 'Edit review'),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Text('Rating'),
+                      const SizedBox(width: 12),
+                      _StarRatingInput(
+                        value: stars,
+                        onChanged: (value) {
+                          setSheetState(() => stars = value);
+                        },
+                      ),
+                    ],
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (reviewCtrl.text.trim().isEmpty) {
+                        SnackbarUtils.showWarning(
+                          context,
+                          'Please write a review',
+                        );
+                        return;
+                      }
+                      final ok = await ref
+                          .read(shopContentViewModelProvider.notifier)
+                          .updateReview(
+                            shopId: widget.shop.shopId ?? '',
+                            reviewId: review.reviewId!,
+                            reviewName: reviewCtrl.text,
+                            starNum: stars,
+                          );
+                      if (!mounted) return;
+                      if (ok) {
+                        SnackbarUtils.showSuccess(context, 'Review updated');
+                        Navigator.of(context).pop();
+                      } else {
+                        final err =
+                            ref
+                                .read(shopContentViewModelProvider)
+                                .errorMessage ??
+                            'Failed to update review';
+                        SnackbarUtils.showError(context, err);
+                      }
+                    },
+                    child: const Text('Update Review'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteReview(ShopReviewEntity review) async {
+    if (!_canEditReview(review) || review.reviewId == null) {
+      SnackbarUtils.showWarning(context, 'You can only delete your own review.');
+      return;
+    }
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete review'),
+        content: const Text('Are you sure you want to delete this review?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    final ok = await ref.read(shopContentViewModelProvider.notifier).deleteReview(
+      shopId: widget.shop.shopId ?? '',
+      reviewId: review.reviewId!,
+    );
+    if (!mounted) return;
+    if (ok) {
+      SnackbarUtils.showSuccess(context, 'Review deleted');
+    } else {
+      final err =
+          ref.read(shopContentViewModelProvider).errorMessage ??
+          'Failed to delete review';
+      SnackbarUtils.showError(context, err);
+    }
+  }
+
+  bool _canEditReview(ShopReviewEntity review) {
+    final currentId = _currentUserId?.trim();
+    final reviewedBy = review.reviewedBy?.trim();
+    if (currentId == null || currentId.isEmpty) return false;
+    if (reviewedBy == null || reviewedBy.isEmpty) return false;
+    return currentId == reviewedBy;
   }
 
   @override
@@ -344,17 +471,37 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
               reviews: state.reviews,
               canAddReview: !_isOwner,
               onAddReview: _isOwner ? null : _showReviewSheet,
+              canEditReview: _canEditReview,
+              onEditReview: _showEditReviewSheet,
+              onDeleteReview: _deleteReview,
+              isLiked: (review) =>
+                  review.reviewId != null &&
+                  state.likedReviewIds.contains(review.reviewId!),
+              isDisliked: (review) =>
+                  review.reviewId != null &&
+                  state.dislikedReviewIds.contains(review.reviewId!),
+              isReacting: (review) =>
+                  review.reviewId != null &&
+                  state.reactingReviewIds.contains(review.reviewId!),
               onLike: (review) {
                 if (review.reviewId == null) return;
                 ref
                     .read(shopContentViewModelProvider.notifier)
-                    .reactToReview(reviewId: review.reviewId!, isLike: true);
+                    .reactToReview(
+                      shopId: widget.shop.shopId ?? '',
+                      reviewId: review.reviewId!,
+                      isLike: true,
+                    );
               },
               onDislike: (review) {
                 if (review.reviewId == null) return;
                 ref
                     .read(shopContentViewModelProvider.notifier)
-                    .reactToReview(reviewId: review.reviewId!, isLike: false);
+                    .reactToReview(
+                      shopId: widget.shop.shopId ?? '',
+                      reviewId: review.reviewId!,
+                      isLike: false,
+                    );
               },
             ),
           ],
@@ -378,6 +525,32 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _StarRatingInput extends StatelessWidget {
+  const _StarRatingInput({required this.value, required this.onChanged});
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(5, (index) {
+        final star = index + 1;
+        return IconButton(
+          onPressed: () => onChanged(star),
+          iconSize: 24,
+          visualDensity: VisualDensity.compact,
+          splashRadius: 20,
+          icon: Icon(
+            star <= value ? Icons.star_rounded : Icons.star_border_rounded,
+            color: AppColors.warning,
+          ),
+        );
+      }),
     );
   }
 }

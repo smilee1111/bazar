@@ -70,10 +70,18 @@ class ApiEndpoints {
   static String shopReviewsByShop(String shopId) => '/shops/$shopId/reviews';
   static String shopReviewById(String shopId, String reviewId) =>
       '/shops/$shopId/reviews/$reviewId';
-  static String likeShopReview(String reviewId) =>
-      '/shops/reviews/$reviewId/like';
-  static String dislikeShopReview(String reviewId) =>
-      '/shops/reviews/$reviewId/dislike';
+  static String likeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/like';
+  static String unlikeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/unlike';
+  static String isShopReviewLiked(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/liked';
+  static String dislikeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/dislike';
+  static String undislikeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/undislike';
+  static String isShopReviewDisliked(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/disliked';
 
   // ============ Shop Photo Endpoints ============
   static String shopPhotosByShop(String shopId) => '/shops/$shopId/photos';

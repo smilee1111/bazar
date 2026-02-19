@@ -16,8 +16,12 @@ abstract interface class IShopReviewRemoteDataSource {
     ShopReviewApiModel review,
   );
   Future<bool> deleteReview(String shopId, String reviewId);
-  Future<ShopReviewApiModel> likeReview(String reviewId);
-  Future<ShopReviewApiModel> dislikeReview(String reviewId);
+  Future<ShopReviewApiModel> likeReview(String shopId, String reviewId);
+  Future<ShopReviewApiModel> unlikeReview(String shopId, String reviewId);
+  Future<bool> isReviewLiked(String shopId, String reviewId);
+  Future<ShopReviewApiModel> dislikeReview(String shopId, String reviewId);
+  Future<ShopReviewApiModel> undislikeReview(String shopId, String reviewId);
+  Future<bool> isReviewDisliked(String shopId, String reviewId);
   Future<List<ShopReviewApiModel>> getUserReviews();
 }
 
@@ -64,6 +68,23 @@ class ShopReviewRemoteDataSource implements IShopReviewRemoteDataSource {
     throw Exception('Invalid shop review payload');
   }
 
+  bool _extractFlag(dynamic payload, List<String> keys) {
+    if (payload is Map<String, dynamic>) {
+      for (final key in keys) {
+        final direct = payload[key];
+        if (direct is bool) return direct;
+      }
+      final data = payload['data'];
+      if (data is Map<String, dynamic>) {
+        for (final key in keys) {
+          final nested = data[key];
+          if (nested is bool) return nested;
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   Future<ShopReviewApiModel> createReview(
     String shopId,
@@ -88,11 +109,30 @@ class ShopReviewRemoteDataSource implements IShopReviewRemoteDataSource {
   }
 
   @override
-  Future<ShopReviewApiModel> dislikeReview(String reviewId) async {
+  Future<ShopReviewApiModel> dislikeReview(String shopId, String reviewId) async {
     final response = await _apiClient.post(
-      ApiEndpoints.dislikeShopReview(reviewId),
+      ApiEndpoints.dislikeShopReview(shopId, reviewId),
     );
     return _extractOne(response.data);
+  }
+
+  @override
+  Future<ShopReviewApiModel> undislikeReview(
+    String shopId,
+    String reviewId,
+  ) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.undislikeShopReview(shopId, reviewId),
+    );
+    return _extractOne(response.data);
+  }
+
+  @override
+  Future<bool> isReviewDisliked(String shopId, String reviewId) async {
+    final response = await _apiClient.get(
+      ApiEndpoints.isShopReviewDisliked(shopId, reviewId),
+    );
+    return _extractFlag(response.data, ['isDisliked', 'disliked']);
   }
 
   @override
@@ -121,11 +161,27 @@ class ShopReviewRemoteDataSource implements IShopReviewRemoteDataSource {
   }
 
   @override
-  Future<ShopReviewApiModel> likeReview(String reviewId) async {
+  Future<ShopReviewApiModel> likeReview(String shopId, String reviewId) async {
     final response = await _apiClient.post(
-      ApiEndpoints.likeShopReview(reviewId),
+      ApiEndpoints.likeShopReview(shopId, reviewId),
     );
     return _extractOne(response.data);
+  }
+
+  @override
+  Future<ShopReviewApiModel> unlikeReview(String shopId, String reviewId) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.unlikeShopReview(shopId, reviewId),
+    );
+    return _extractOne(response.data);
+  }
+
+  @override
+  Future<bool> isReviewLiked(String shopId, String reviewId) async {
+    final response = await _apiClient.get(
+      ApiEndpoints.isShopReviewLiked(shopId, reviewId),
+    );
+    return _extractFlag(response.data, ['isLiked', 'liked']);
   }
 
   @override

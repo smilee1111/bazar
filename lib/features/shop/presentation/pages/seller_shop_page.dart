@@ -1,6 +1,5 @@
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
-import 'package:bazar/core/utils/snackbar_utils.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/pages/shop_form_page.dart';
 import 'package:bazar/features/shop/presentation/pages/shop_public_detail_page.dart';
@@ -24,7 +23,7 @@ class _SellerShopPageState extends ConsumerState<SellerShopPage> {
     });
   }
 
-  Future<void> _openForm({ShopEntity? shop}) async {
+  Future<void> _openForm(ShopEntity shop) async {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => ShopFormPage(initialShop: shop)),
@@ -42,39 +41,6 @@ class _SellerShopPageState extends ConsumerState<SellerShopPage> {
         builder: (_) => ShopPublicDetailPage(shop: shop, allowOwnerEdit: true),
       ),
     );
-  }
-
-  Future<void> _deleteShop(String shopId) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete shop'),
-        content: const Text('Are you sure you want to delete this shop?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-    final ok = await ref
-        .read(shopViewModelProvider.notifier)
-        .deleteShop(shopId);
-    if (!mounted) return;
-    if (ok) {
-      SnackbarUtils.showSuccess(context, 'Shop deleted');
-    } else {
-      final err =
-          ref.read(shopViewModelProvider).errorMessage ?? 'Delete failed';
-      SnackbarUtils.showError(context, err);
-    }
   }
 
   @override
@@ -104,20 +70,11 @@ class _SellerShopPageState extends ConsumerState<SellerShopPage> {
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _openForm(),
-                  icon: const Icon(Icons.add_business_outlined, size: 18),
-                  label: const Text('Create'),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(0, 42),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'Create, update and maintain your seller shop details.',
+              'Update and maintain your seller shop details.',
               style: AppTextStyle.minimalTexts.copyWith(
                 fontSize: 13,
                 color: Colors.grey.shade700,
@@ -135,18 +92,16 @@ class _SellerShopPageState extends ConsumerState<SellerShopPage> {
                 _SectionTitle(title: 'My Shop'),
                 _ShopCard(
                   shop: myShop,
-                  onEdit: () => _openForm(shop: myShop),
+                  onEdit: () => _openForm(myShop),
                   onManageContent: () => _openContentManager(myShop),
-                  onDelete: myShop.shopId == null
-                      ? null
-                      : () => _deleteShop(myShop.shopId!),
                 ),
                 const SizedBox(height: 14),
               ],
               if (myShop == null) ...[
                 _SectionTitle(title: 'My Shop'),
                 _InfoBanner(
-                  message: 'No shop found. Create your shop to start selling.',
+                  message:
+                      'No shop found. Shop creation is not available from this screen.',
                   isError: false,
                 ),
               ],
@@ -212,13 +167,11 @@ class _ShopCard extends StatelessWidget {
     required this.shop,
     required this.onEdit,
     required this.onManageContent,
-    required this.onDelete,
   });
 
   final ShopEntity shop;
   final VoidCallback onEdit;
   final VoidCallback onManageContent;
-  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -254,12 +207,6 @@ class _ShopCard extends StatelessWidget {
                 icon: const Icon(Icons.photo_library_outlined),
                 tooltip: 'Manage details/photos/reviews',
               ),
-              if (onDelete != null)
-                IconButton(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline_rounded),
-                  tooltip: 'Delete shop',
-                ),
             ],
           ),
           const SizedBox(height: 6),

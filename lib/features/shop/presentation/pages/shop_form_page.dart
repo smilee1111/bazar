@@ -37,6 +37,17 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
     _shopContactCtrl = TextEditingController(text: shop?.shopContact ?? '');
     _contactNumberCtrl = TextEditingController(text: shop?.contactNumber ?? '');
     _emailCtrl = TextEditingController(text: shop?.email ?? '');
+
+    if (!_isEditMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        SnackbarUtils.showError(
+          context,
+          'Creating a new shop is currently unavailable.',
+        );
+        Navigator.pop(context);
+      });
+    }
   }
 
   @override
@@ -52,6 +63,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
   }
 
   Future<void> _submit() async {
+    if (!_isEditMode) return;
     if (!_formKey.currentState!.validate()) return;
 
     final entity = ShopEntity(
@@ -67,9 +79,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
     );
 
     final notifier = ref.read(shopViewModelProvider.notifier);
-    final ok = _isEditMode
-        ? await notifier.updateShop(entity)
-        : await notifier.createShop(entity);
+    final ok = await notifier.updateShop(entity);
 
     if (!mounted) return;
     if (ok) {
@@ -97,7 +107,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
     final isBusy = state.isSaving;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditMode ? 'Edit Shop' : 'Create Shop')),
+      appBar: AppBar(title: const Text('Edit Shop')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
         child: Form(
@@ -106,9 +116,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _isEditMode
-                    ? 'Update your shop details for customers.'
-                    : 'Create your seller shop profile.',
+                'Update your shop details for customers.',
                 style: AppTextStyle.minimalTexts.copyWith(
                   fontSize: 13,
                   color: Colors.grey.shade700,
@@ -199,7 +207,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
                           color: Colors.white,
                         ),
                       )
-                    : Text(_isEditMode ? 'Update Shop' : 'Create Shop'),
+                    : const Text('Update Shop'),
               ),
             ],
           ),

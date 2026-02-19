@@ -77,11 +77,36 @@ class ShopReviewRepository implements IShopReviewRepository {
   }
 
   @override
-  Future<Either<Failure, ShopReviewEntity>> dislikeReview(String reviewId) {
+  Future<Either<Failure, ShopReviewEntity>> dislikeReview(
+    String shopId,
+    String reviewId,
+  ) {
     return _guard(() async {
-      final response = await _remoteDataSource.dislikeReview(reviewId);
+      final response = await _remoteDataSource.dislikeReview(shopId, reviewId);
       return response.toEntity();
     }, 'Failed to dislike review');
+  }
+
+  @override
+  Future<Either<Failure, ShopReviewEntity>> undislikeReview(
+    String shopId,
+    String reviewId,
+  ) {
+    return _guard(() async {
+      final response = await _remoteDataSource.undislikeReview(
+        shopId,
+        reviewId,
+      );
+      return response.toEntity();
+    }, 'Failed to remove dislike');
+  }
+
+  @override
+  Future<Either<Failure, bool>> isReviewDisliked(String shopId, String reviewId) {
+    return _guard(
+      () => _remoteDataSource.isReviewDisliked(shopId, reviewId),
+      'Failed to fetch dislike status',
+    );
   }
 
   @override
@@ -114,11 +139,33 @@ class ShopReviewRepository implements IShopReviewRepository {
   }
 
   @override
-  Future<Either<Failure, ShopReviewEntity>> likeReview(String reviewId) {
+  Future<Either<Failure, ShopReviewEntity>> likeReview(
+    String shopId,
+    String reviewId,
+  ) {
     return _guard(() async {
-      final response = await _remoteDataSource.likeReview(reviewId);
+      final response = await _remoteDataSource.likeReview(shopId, reviewId);
       return response.toEntity();
     }, 'Failed to like review');
+  }
+
+  @override
+  Future<Either<Failure, ShopReviewEntity>> unlikeReview(
+    String shopId,
+    String reviewId,
+  ) {
+    return _guard(() async {
+      final response = await _remoteDataSource.unlikeReview(shopId, reviewId);
+      return response.toEntity();
+    }, 'Failed to remove like');
+  }
+
+  @override
+  Future<Either<Failure, bool>> isReviewLiked(String shopId, String reviewId) {
+    return _guard(
+      () => _remoteDataSource.isReviewLiked(shopId, reviewId),
+      'Failed to fetch like status',
+    );
   }
 
   @override

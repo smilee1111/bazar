@@ -20,7 +20,26 @@ abstract interface class IShopReviewRepository {
     ShopReviewEntity review,
   );
   Future<Either<Failure, bool>> deleteReview(String shopId, String reviewId);
-  Future<Either<Failure, ShopReviewEntity>> likeReview(String reviewId);
-  Future<Either<Failure, ShopReviewEntity>> dislikeReview(String reviewId);
+  Future<Either<Failure, ShopReviewEntity>> likeReview(
+    String shopId,
+    String reviewId,
+  );
+  Future<Either<Failure, ShopReviewEntity>> unlikeReview(
+    String shopId,
+    String reviewId,
+  );
+  Future<Either<Failure, bool>> isReviewLiked(String shopId, String reviewId);
+  Future<Either<Failure, ShopReviewEntity>> dislikeReview(
+    String shopId,
+    String reviewId,
+  );
+  Future<Either<Failure, ShopReviewEntity>> undislikeReview(
+    String shopId,
+    String reviewId,
+  );
+  Future<Either<Failure, bool>> isReviewDisliked(
+    String shopId,
+    String reviewId,
+  );
   Future<Either<Failure, List<ShopReviewEntity>>> getUserReviews();
 }

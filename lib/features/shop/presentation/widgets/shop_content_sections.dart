@@ -239,6 +239,12 @@ class ShopReviewsSection extends StatelessWidget {
     required this.reviews,
     required this.onLike,
     required this.onDislike,
+    this.canEditReview,
+    this.onEditReview,
+    this.onDeleteReview,
+    this.isLiked,
+    this.isDisliked,
+    this.isReacting,
     this.canAddReview = true,
     this.onAddReview,
   });
@@ -246,6 +252,12 @@ class ShopReviewsSection extends StatelessWidget {
   final List<ShopReviewEntity> reviews;
   final void Function(ShopReviewEntity review) onLike;
   final void Function(ShopReviewEntity review) onDislike;
+  final bool Function(ShopReviewEntity review)? canEditReview;
+  final void Function(ShopReviewEntity review)? onEditReview;
+  final void Function(ShopReviewEntity review)? onDeleteReview;
+  final bool Function(ShopReviewEntity review)? isLiked;
+  final bool Function(ShopReviewEntity review)? isDisliked;
+  final bool Function(ShopReviewEntity review)? isReacting;
   final bool canAddReview;
   final VoidCallback? onAddReview;
 
@@ -275,6 +287,16 @@ class ShopReviewsSection extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _ReviewTile(
                         review: review,
+                        canEdit: canEditReview?.call(review) ?? false,
+                        onEdit: onEditReview == null
+                            ? null
+                            : () => onEditReview!(review),
+                        onDelete: onDeleteReview == null
+                            ? null
+                            : () => onDeleteReview!(review),
+                        isLiked: isLiked?.call(review) ?? false,
+                        isDisliked: isDisliked?.call(review) ?? false,
+                        isReacting: isReacting?.call(review) ?? false,
                         onLike: () => onLike(review),
                         onDislike: () => onDislike(review),
                       ),
@@ -291,11 +313,23 @@ class _ReviewTile extends StatelessWidget {
     required this.review,
     required this.onLike,
     required this.onDislike,
+    required this.canEdit,
+    required this.onEdit,
+    required this.onDelete,
+    required this.isLiked,
+    required this.isDisliked,
+    required this.isReacting,
   });
 
   final ShopReviewEntity review;
   final VoidCallback onLike;
   final VoidCallback onDislike;
+  final bool canEdit;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final bool isLiked;
+  final bool isDisliked;
+  final bool isReacting;
 
   @override
   Widget build(BuildContext context) {
@@ -311,59 +345,98 @@ class _ReviewTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (reviewerName != null) ...[
-                Text(
-                  reviewerName,
-                  style: AppTextStyle.minimalTexts.copyWith(
-                    fontSize: 11,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-              ],
               Expanded(
-                child: Text(
-                  review.reviewName,
-                  style: AppTextStyle.inputBox.copyWith(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: reviewerName == null
+                    ? const SizedBox.shrink()
+                    : Text(
+                        reviewerName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.minimalTexts.copyWith(
+                          fontSize: 11,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(999),
+              _ReviewStars(stars: review.starNum),
+              if (canEdit && onEdit != null) ...[
+                const SizedBox(width: 6),
+                IconButton(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  tooltip: 'Edit review',
                 ),
-                child: Text(
-                  '${review.starNum}/5',
-                  style: AppTextStyle.inputBox.copyWith(
-                    fontSize: 11,
-                    color: AppColors.warning,
-                  ),
+              ],
+              if (canEdit && onDelete != null)
+                IconButton(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                  tooltip: 'Delete review',
                 ),
-              ),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            review.reviewName,
+            style: AppTextStyle.inputBox.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               _ReactButton(
-                icon: Icons.thumb_up_alt_outlined,
+                icon: isLiked
+                    ? Icons.thumb_up_alt_rounded
+                    : Icons.thumb_up_alt_outlined,
                 label: '${review.likesCount}',
-                onTap: onLike,
+                onTap: isReacting ? null : onLike,
+                isActive: isLiked,
+                activeColor: AppColors.primary,
               ),
               const SizedBox(width: 6),
               _ReactButton(
-                icon: Icons.thumb_down_alt_outlined,
+                icon: isDisliked
+                    ? Icons.thumb_down_alt_rounded
+                    : Icons.thumb_down_alt_outlined,
                 label: '${review.dislikeCount}',
-                onTap: onDislike,
+                onTap: isReacting ? null : onDislike,
+                isActive: isDisliked,
+                activeColor: AppColors.error,
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReviewStars extends StatelessWidget {
+  const _ReviewStars({required this.stars});
+  final int stars;
+
+  @override
+  Widget build(BuildContext context) {
+    final safeStars = stars.clamp(1, 5);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        children: List.generate(5, (index) {
+          final filled = index < safeStars;
+          return Icon(
+            filled ? Icons.star_rounded : Icons.star_border_rounded,
+            size: 13,
+            color: AppColors.warning,
+          );
+        }),
       ),
     );
   }
@@ -374,11 +447,15 @@ class _ReactButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    required this.isActive,
+    required this.activeColor,
   });
 
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool isActive;
+  final Color activeColor;
 
   @override
   Widget build(BuildContext context) {
@@ -388,13 +465,15 @@ class _ReactButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isActive
+              ? activeColor.withValues(alpha: 0.15)
+              : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.accent2),
+          border: Border.all(color: isActive ? activeColor : AppColors.accent2),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 14, color: AppColors.primary),
+            Icon(icon, size: 14, color: isActive ? activeColor : AppColors.primary),
             const SizedBox(width: 4),
             Text(label, style: AppTextStyle.inputBox.copyWith(fontSize: 11)),
           ],
@@ -502,7 +581,7 @@ String? _resolveReviewerName(ShopReviewEntity review) {
   final named = review.reviewedByName?.trim() ?? '';
   if (named.isNotEmpty) return named;
   final raw = review.reviewedBy?.trim() ?? '';
-  if (raw.isEmpty) return null;
+  if (raw.isEmpty) return 'Reviewer';
   if (raw.length <= 20 || raw.contains('@')) return raw;
-  return null;
+  return 'Reviewer';
 }
