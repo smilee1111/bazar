@@ -54,7 +54,11 @@ class ApiEndpoints {
 
   // // ============ Shop Endpoints ============
   static const String shops = '/shops';
-  static String shopById(String id) => '/shops/$id';
+  static const String sellerShops = '/seller/shops';
+  static const String publicShopsFeed = '/shops/public';
+  static String publicShopById(String shopId) => '/shops/public/$shopId';
+  static String sellerShopById(String id) => '/seller/shops/$id';
+  static const String mySellerShop = '/seller/shops/my';
 
   // ============ Auth Endpoints ============
   // Backend: app.use('/api/auth', authRoutes)
