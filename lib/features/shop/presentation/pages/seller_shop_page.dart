@@ -3,6 +3,7 @@ import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/pages/shop_form_page.dart';
+import 'package:bazar/features/shop/presentation/pages/shop_public_detail_page.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,6 +33,15 @@ class _SellerShopPageState extends ConsumerState<SellerShopPage> {
     await ref
         .read(shopViewModelProvider.notifier)
         .loadSellerShops(forceRefresh: true);
+  }
+
+  Future<void> _openContentManager(ShopEntity shop) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ShopPublicDetailPage(shop: shop, allowOwnerEdit: true),
+      ),
+    );
   }
 
   Future<void> _deleteShop(String shopId) async {
@@ -126,6 +136,7 @@ class _SellerShopPageState extends ConsumerState<SellerShopPage> {
                 _ShopCard(
                   shop: myShop,
                   onEdit: () => _openForm(shop: myShop),
+                  onManageContent: () => _openContentManager(myShop),
                   onDelete: myShop.shopId == null
                       ? null
                       : () => _deleteShop(myShop.shopId!),
@@ -200,11 +211,13 @@ class _ShopCard extends StatelessWidget {
   const _ShopCard({
     required this.shop,
     required this.onEdit,
+    required this.onManageContent,
     required this.onDelete,
   });
 
   final ShopEntity shop;
   final VoidCallback onEdit;
+  final VoidCallback onManageContent;
   final VoidCallback? onDelete;
 
   @override
@@ -235,6 +248,11 @@ class _ShopCard extends StatelessWidget {
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined),
                 tooltip: 'Edit shop',
+              ),
+              IconButton(
+                onPressed: onManageContent,
+                icon: const Icon(Icons.photo_library_outlined),
+                tooltip: 'Manage details/photos/reviews',
               ),
               if (onDelete != null)
                 IconButton(

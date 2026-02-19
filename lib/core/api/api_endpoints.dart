@@ -16,7 +16,7 @@ class ApiEndpoints {
 
   // Configuration
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '192.168.1.93';
+  static const String _ipAddress = '192.168.101.11';
   //192.168.1.93
   //192.168.101.11'
   static const int _port = 5050;
@@ -59,6 +59,26 @@ class ApiEndpoints {
   static String publicShopById(String shopId) => '/shops/public/$shopId';
   static String sellerShopById(String id) => '/seller/shops/$id';
   static const String mySellerShop = '/seller/shops/my';
+  static const String userReviews = '/user/reviews';
+
+  // ============ Shop Detail Endpoints ============
+  static String shopDetailsByShop(String shopId) => '/shops/$shopId/details';
+  static String shopDetailById(String shopId, String detailId) =>
+      '/shops/$shopId/details/$detailId';
+
+  // ============ Shop Review Endpoints ============
+  static String shopReviewsByShop(String shopId) => '/shops/$shopId/reviews';
+  static String shopReviewById(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId';
+  static String likeShopReview(String reviewId) =>
+      '/shops/reviews/$reviewId/like';
+  static String dislikeShopReview(String reviewId) =>
+      '/shops/reviews/$reviewId/dislike';
+
+  // ============ Shop Photo Endpoints ============
+  static String shopPhotosByShop(String shopId) => '/shops/$shopId/photos';
+  static String shopPhotoById(String shopId, String photoId) =>
+      '/shops/$shopId/photos/$photoId';
 
   // ============ Auth Endpoints ============
   // Backend: app.use('/api/auth', authRoutes)
