@@ -30,6 +30,7 @@ class AuthApiModel {
         "fullName": fullName,
         "email": email,
         "username": username,
+        if (password != null) "password": password,
         // phoneNumber as int on API side, default to 0 when missing
         "phoneNumber": phoneNumber != null && phoneNumber!.isNotEmpty
             ? int.tryParse(phoneNumber!) ?? 0
