@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/features/shop/presentation/state/shop_content_state.dart';
 import 'package:bazar/features/shopDetail/domain/entities/shop_detail_entity.dart';
 import 'package:bazar/features/shopDetail/domain/usecases/create_shop_detail_usecase.dart';
@@ -252,11 +253,21 @@ class ShopContentViewModel extends Notifier<ShopContentState> {
     if (state.isSubmittingReview) return false;
     state = state.copyWith(isSubmittingReview: true, clearError: true);
 
+    final session = ref.read(userSessionServiceProvider);
+    final currentUserId = session.getCurrentUserId();
+    final currentUserName = session.getCurrentUserFullName();
+    final currentUsername = session.getCurrentUserUsername();
+
     final payload = ShopReviewEntity(
       reviewName: reviewName.trim(),
       shopId: shopId,
       starNum: starNum.clamp(1, 5),
-      reviewedBy: null,
+      reviewedBy: currentUserId,
+      reviewedByName: (currentUserName != null && currentUserName.trim().isNotEmpty)
+          ? currentUserName.trim()
+          : ((currentUsername != null && currentUsername.trim().isNotEmpty)
+                ? currentUsername.trim()
+                : 'You'),
     );
 
     final result = await _createShopReviewUsecase(
@@ -271,9 +282,15 @@ class ShopContentViewModel extends Notifier<ShopContentState> {
         return false;
       },
       (review) {
+        final merged = _mergeReviewForUi(
+          previous: payload,
+          updated: review,
+          fallbackReviewId: review.reviewId ?? '',
+          fallbackShopId: shopId,
+        );
         state = state.copyWith(
           isSubmittingReview: false,
-          reviews: [review, ...state.reviews],
+          reviews: [merged, ...state.reviews],
           clearError: true,
         );
         return true;

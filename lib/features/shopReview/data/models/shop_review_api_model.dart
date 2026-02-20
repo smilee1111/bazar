@@ -28,7 +28,7 @@ class ShopReviewApiModel {
     if (value is String) return value;
     if (value is num || value is bool) return value.toString();
     if (value is Map<String, dynamic>) {
-      final id = value['_id'] ?? value['id'];
+      final id = value['_id'] ?? value['id'] ?? value['shopId'] ?? value['reviewId'];
       if (id is String) return id;
     }
     return null;

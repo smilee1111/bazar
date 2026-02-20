@@ -1,8 +1,11 @@
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
-import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
+import 'package:bazar/features/dashboard/presentation/widgets/public_shop_card.dart';
+import 'package:bazar/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:bazar/features/savedShop/presentation/view_model/saved_shop_view_model.dart';
 import 'package:bazar/features/shop/presentation/pages/shop_public_detail_page.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_view_model.dart';
+import 'package:bazar/features/shopReview/presentation/view_model/user_review_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,6 +24,9 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     super.initState();
     Future.microtask(() {
       ref.read(shopViewModelProvider.notifier).loadPublicShops();
+      ref.read(savedShopViewModelProvider.notifier).loadSavedShops();
+      ref.read(favouriteViewModelProvider.notifier).loadFavourites();
+      ref.read(userReviewViewModelProvider.notifier).loadReviewedShops();
     });
   }
 
@@ -33,6 +39,13 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   @override
   Widget build(BuildContext context) {
     final shopState = ref.watch(shopViewModelProvider);
+    final savedState = ref.watch(savedShopViewModelProvider);
+    final favouriteState = ref.watch(favouriteViewModelProvider);
+    final userReviewState = ref.watch(userReviewViewModelProvider);
+    final reviewedIds = {
+      ...userReviewState.reviewedShopIds,
+      ...favouriteState.reviewedShopIds,
+    };
     final query = _searchCtrl.text.trim().toLowerCase();
     final filtered = query.isEmpty
         ? shopState.publicShops
@@ -49,9 +62,20 @@ class _HomescreenState extends ConsumerState<Homescreen> {
       top: false,
       child: RefreshIndicator(
         onRefresh: () async {
-          await ref
-              .read(shopViewModelProvider.notifier)
-              .loadPublicShops(forceRefresh: true);
+          await Future.wait([
+            ref
+                .read(shopViewModelProvider.notifier)
+                .loadPublicShops(forceRefresh: true),
+            ref
+                .read(savedShopViewModelProvider.notifier)
+                .loadSavedShops(forceRefresh: true),
+            ref
+                .read(favouriteViewModelProvider.notifier)
+                .loadFavourites(forceRefresh: true),
+            ref
+                .read(userReviewViewModelProvider.notifier)
+                .loadReviewedShops(forceRefresh: true),
+          ]);
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -116,7 +140,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                     final shop = filtered[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: _PublicShopCard(
+                      child: PublicShopCard(
                         shop: shop,
                         onTap: () {
                           Navigator.push(
@@ -125,6 +149,39 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                               builder: (_) => ShopPublicDetailPage(shop: shop),
                             ),
                           );
+                        },
+                        isSaved: savedState.savedShopIds.contains(
+                          shop.shopId ?? '',
+                        ),
+                        isFavourite: favouriteState.favouriteShopIds.contains(
+                          shop.shopId ?? '',
+                        ),
+                        isReviewed: reviewedIds.contains(
+                          shop.shopId ?? '',
+                        ),
+                        isSaveBusy: savedState.processingShopIds.contains(
+                          shop.shopId ?? '',
+                        ),
+                        isFavouriteBusy: favouriteState.processingShopIds.contains(
+                          shop.shopId ?? '',
+                        ),
+                        onToggleSave: () {
+                          final shopId = shop.shopId ?? '';
+                          if (shopId.isEmpty) return;
+                          ref
+                              .read(savedShopViewModelProvider.notifier)
+                              .toggleSaved(shopId);
+                        },
+                        onToggleFavourite: () {
+                          final shopId = shop.shopId ?? '';
+                          if (shopId.isEmpty) return;
+                          final isReviewed = reviewedIds.contains(shopId);
+                          ref
+                              .read(favouriteViewModelProvider.notifier)
+                              .toggleFavourite(
+                                shopId: shopId,
+                                isReviewed: isReviewed ? true : null,
+                              );
                         },
                       ),
                     );
@@ -350,81 +407,6 @@ class _SkeletonLine extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFFEAE7DE),
           borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
-}
-
-class _PublicShopCard extends StatelessWidget {
-  const _PublicShopCard({required this.shop, required this.onTap});
-
-  final ShopEntity shop;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.accent2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      shop.shopName,
-                      style: AppTextStyle.inputBox.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: Colors.grey.shade500,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                shop.shopAddress,
-                style: AppTextStyle.minimalTexts.copyWith(
-                  fontSize: 12,
-                  color: Colors.grey.shade800,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.phone_outlined,
-                    size: 16,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      shop.shopContact,
-                      style: AppTextStyle.inputBox.copyWith(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );

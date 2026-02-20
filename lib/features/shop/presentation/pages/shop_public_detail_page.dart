@@ -4,8 +4,11 @@ import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
+import 'package:bazar/features/savedShop/presentation/view_model/saved_shop_view_model.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_content_view_model.dart';
+import 'package:bazar/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:bazar/features/shopReview/presentation/view_model/user_review_view_model.dart';
 import 'package:bazar/features/shop/presentation/widgets/shop_content_sections.dart';
 import 'package:bazar/features/shopPhoto/domain/entities/shop_photo_entity.dart';
 import 'package:bazar/features/shopReview/domain/entities/shop_review_entity.dart';
@@ -46,6 +49,11 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
       setState(() {
         _isOwner = _isOwner || ownerMatch;
       });
+      await Future.wait([
+        ref.read(savedShopViewModelProvider.notifier).loadSavedShops(),
+        ref.read(favouriteViewModelProvider.notifier).loadFavourites(),
+        ref.read(userReviewViewModelProvider.notifier).loadReviewedShops(),
+      ]);
       await ref
           .read(shopContentViewModelProvider.notifier)
           .load(widget.shop.shopId ?? '', forceRefresh: true);
@@ -245,6 +253,21 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                           );
                       if (!mounted) return;
                       if (ok) {
+                        final shopId = widget.shop.shopId ?? '';
+                        if (shopId.isNotEmpty) {
+                          ref
+                              .read(userReviewViewModelProvider.notifier)
+                              .markReviewedShop(shopId);
+                          await ref
+                              .read(favouriteViewModelProvider.notifier)
+                              .ensureReviewedFavourite(shopId);
+                        }
+                        ref
+                            .read(userReviewViewModelProvider.notifier)
+                            .loadReviewedShops(forceRefresh: true);
+                        ref
+                            .read(favouriteViewModelProvider.notifier)
+                            .loadFavourites(forceRefresh: true);
                         SnackbarUtils.showSuccess(context, 'Review submitted');
                         Navigator.of(context).pop();
                       } else {
@@ -325,6 +348,12 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                           );
                       if (!mounted) return;
                       if (ok) {
+                        ref
+                            .read(userReviewViewModelProvider.notifier)
+                            .loadReviewedShops(forceRefresh: true);
+                        ref
+                            .read(favouriteViewModelProvider.notifier)
+                            .loadFavourites(forceRefresh: true);
                         SnackbarUtils.showSuccess(context, 'Review updated');
                         Navigator.of(context).pop();
                       } else {
@@ -377,6 +406,12 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
     );
     if (!mounted) return;
     if (ok) {
+      ref
+          .read(userReviewViewModelProvider.notifier)
+          .loadReviewedShops(forceRefresh: true);
+      ref
+          .read(favouriteViewModelProvider.notifier)
+          .loadFavourites(forceRefresh: true);
       SnackbarUtils.showSuccess(context, 'Review deleted');
     } else {
       final err =
@@ -394,9 +429,70 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
     return currentId == reviewedBy;
   }
 
+  Future<void> _toggleSaveShop() async {
+    final shopId = widget.shop.shopId ?? '';
+    if (shopId.isEmpty) return;
+    final wasSaved = ref.read(savedShopViewModelProvider).savedShopIds.contains(
+          shopId,
+        );
+    final ok = await ref.read(savedShopViewModelProvider.notifier).toggleSaved(
+          shopId,
+        );
+    if (!mounted) return;
+    if (ok) {
+      SnackbarUtils.showSuccess(
+        context,
+        wasSaved ? 'Removed from saved shops' : 'Shop saved successfully',
+      );
+      return;
+    }
+    final err = ref.read(savedShopViewModelProvider).errorMessage;
+    if (err != null && err.isNotEmpty) {
+      SnackbarUtils.showError(context, err);
+    }
+  }
+
+  Future<void> _toggleFavouriteShop({required bool reviewed}) async {
+    final shopId = widget.shop.shopId ?? '';
+    if (shopId.isEmpty) return;
+    final wasFavourite = ref
+        .read(favouriteViewModelProvider)
+        .favouriteShopIds
+        .contains(shopId);
+    final ok = await ref
+        .read(favouriteViewModelProvider.notifier)
+        .toggleFavourite(shopId: shopId, isReviewed: reviewed ? true : null);
+    if (!mounted) return;
+    if (ok) {
+      SnackbarUtils.showSuccess(
+        context,
+        wasFavourite ? 'Removed from favourites' : 'Added to favourites',
+      );
+      return;
+    }
+    final err = ref.read(favouriteViewModelProvider).errorMessage;
+    if (err != null && err.isNotEmpty) {
+      SnackbarUtils.showError(context, err);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(shopContentViewModelProvider);
+    final savedState = ref.watch(savedShopViewModelProvider);
+    final favouriteState = ref.watch(favouriteViewModelProvider);
+    final userReviewState = ref.watch(userReviewViewModelProvider);
+
+    final shopId = widget.shop.shopId ?? '';
+    final reviewedIds = {
+      ...userReviewState.reviewedShopIds,
+      ...favouriteState.reviewedShopIds,
+    };
+    final isReviewed = reviewedIds.contains(shopId);
+    final isSaved = savedState.savedShopIds.contains(shopId);
+    final isFavourite = favouriteState.favouriteShopIds.contains(shopId);
+    final isSaveBusy = savedState.processingShopIds.contains(shopId);
+    final isFavouriteBusy = favouriteState.processingShopIds.contains(shopId);
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.shop.shopName)),
@@ -418,13 +514,93 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.shop.shopName,
-                    style: AppTextStyle.inputBox.copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.shop.shopName,
+                          style: AppTextStyle.inputBox.copyWith(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: isFavouriteBusy
+                            ? const Padding(
+                                padding: EdgeInsets.all(7),
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : IconButton(
+                                tooltip: isFavourite
+                                    ? 'Remove from favourites'
+                                    : 'Add to favourites',
+                                onPressed: () =>
+                                    _toggleFavouriteShop(reviewed: isReviewed),
+                                icon: Icon(
+                                  isFavourite
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isFavourite
+                                      ? AppColors.error
+                                      : Colors.grey.shade600,
+                                ),
+                              ),
+                      ),
+                      SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: isSaveBusy
+                            ? const Padding(
+                                padding: EdgeInsets.all(7),
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : IconButton(
+                                tooltip: isSaved
+                                    ? 'Remove from saved'
+                                    : 'Save shop',
+                                onPressed: _toggleSaveShop,
+                                icon: Icon(
+                                  isSaved
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                  color: isSaved
+                                      ? AppColors.primary
+                                      : Colors.grey.shade600,
+                                ),
+                              ),
+                      ),
+                    ],
                   ),
+                  if (isReviewed) ...[
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.info.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: AppColors.info.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Text(
+                          'You reviewed this',
+                          style: AppTextStyle.inputBox.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.info,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   _info(
                     icon: Icons.location_on_outlined,

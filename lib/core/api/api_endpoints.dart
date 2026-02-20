@@ -60,6 +60,8 @@ class ApiEndpoints {
   static String sellerShopById(String id) => '/seller/shops/$id';
   static const String mySellerShop = '/seller/shops/my';
   static const String userReviews = '/user/reviews';
+  static const String userSavedShops = '/user/saved-shops';
+  static const String userFavourites = '/user/favourites';
 
   // ============ Shop Detail Endpoints ============
   static String shopDetailsByShop(String shopId) => '/shops/$shopId/details';
