@@ -99,10 +99,10 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
   }
 
   @override
-  Future<AuthApiModel> register(AuthApiModel user, {String? roleName, String? confirmPassword}) async {
+  Future<AuthApiModel> register(AuthApiModel user, {String? confirmPassword}) async {
     final response = await _apiClient.post(
       ApiEndpoints.authRegister,
-      data: user.toJson(roleName: roleName, confirmPassword: confirmPassword),
+      data: user.toJson(confirmPassword: confirmPassword),
     );
 
 
