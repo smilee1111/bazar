@@ -1,9 +1,11 @@
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
+import 'package:bazar/features/dashboard/presentation/view_model/shop_card_preview_provider.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PublicShopCard extends StatelessWidget {
+class PublicShopCard extends ConsumerWidget {
   const PublicShopCard({
     super.key,
     required this.shop,
@@ -28,7 +30,13 @@ class PublicShopCard extends StatelessWidget {
   final bool isFavouriteBusy;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final previewState = ref.watch(shopCardPreviewProvider(shop.shopId ?? ''));
+    final preview = previewState.maybeWhen(
+      data: (value) => value,
+      orElse: () => ShopCardPreview.empty,
+    );
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
@@ -80,6 +88,34 @@ class PublicShopCard extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _RatingBadge(
+                    average: preview.averageRating,
+                    reviewCount: preview.reviewCount,
+                  ),
+                  if ((preview.priceRange ?? '').trim().isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    _MetaTag(label: preview.priceRange!),
+                  ],
+                  if (isReviewed) ...[
+                    const SizedBox(width: 8),
+                    const _ReviewedTag(),
+                  ],
+                ],
+              ),
+              if (preview.categoryNames.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: preview.categoryNames
+                      .take(3)
+                      .map((name) => _MetaTag(label: name))
+                      .toList(),
+                ),
+              ],
               const SizedBox(height: 6),
               Text(
                 shop.shopAddress,
@@ -90,6 +126,41 @@ class PublicShopCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
+              if ((shop.description ?? '').trim().isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  shop.description!.trim(),
+                  style: AppTextStyle.minimalTexts.copyWith(
+                    fontSize: 11,
+                    color: Colors.grey.shade700,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              if ((preview.detailSnippet ?? '').trim().isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.link_rounded,
+                      size: 14,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        preview.detailSnippet!,
+                        style: AppTextStyle.inputBox.copyWith(fontSize: 11),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 8),
+              _PreviewPhotos(photoUrls: preview.photoUrls),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -105,11 +176,141 @@ class PublicShopCard extends StatelessWidget {
                       style: AppTextStyle.inputBox.copyWith(fontSize: 12),
                     ),
                   ),
-                  if (isReviewed) const _ReviewedTag(),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewPhotos extends StatelessWidget {
+  const _PreviewPhotos({required this.photoUrls});
+
+  final List<String> photoUrls;
+
+  @override
+  Widget build(BuildContext context) {
+    if (photoUrls.isEmpty) {
+      return Container(
+        height: 74,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3EFE5),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.accent2),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          'No photos yet',
+          style: AppTextStyle.minimalTexts.copyWith(
+            fontSize: 11,
+            color: Colors.grey.shade700,
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 74,
+      child: Row(
+        children: List.generate(3, (index) {
+          final hasImage = index < photoUrls.length;
+          return Expanded(
+            child: Container(
+              margin: EdgeInsets.only(right: index == 2 ? 0 : 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EFE5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.accent2),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: hasImage
+                  ? Image.network(
+                      photoUrls[index],
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const _PhotoPlaceholder(),
+                    )
+                  : const _PhotoPlaceholder(),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _PhotoPlaceholder extends StatelessWidget {
+  const _PhotoPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFF0EBDD),
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.photo_outlined,
+        size: 18,
+        color: AppColors.primary,
+      ),
+    );
+  }
+}
+
+class _RatingBadge extends StatelessWidget {
+  const _RatingBadge({required this.average, required this.reviewCount});
+
+  final double average;
+  final int reviewCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.28)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
+          const SizedBox(width: 4),
+          Text(
+            reviewCount == 0
+                ? 'No ratings'
+                : '${average.toStringAsFixed(1)} ($reviewCount)',
+            style: AppTextStyle.inputBox.copyWith(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.warning,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetaTag extends StatelessWidget {
+  const _MetaTag({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3EFE5),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.accent2),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyle.inputBox.copyWith(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
