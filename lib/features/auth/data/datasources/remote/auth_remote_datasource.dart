@@ -99,6 +99,33 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
   }
 
   @override
+  Future<bool> requestPasswordReset(String email) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.authRequestPasswordReset,
+      data: {'email': email},
+    );
+    if (response.data is Map<String, dynamic>) {
+      return response.data['success'] == true;
+    }
+    return true;
+  }
+
+  @override
+  Future<bool> resetPassword({
+    required String token,
+    required String password,
+  }) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.authResetPassword(token),
+      data: {'password': password},
+    );
+    if (response.data is Map<String, dynamic>) {
+      return response.data['success'] == true;
+    }
+    return true;
+  }
+
+  @override
   Future<AuthApiModel> register(AuthApiModel user, {String? confirmPassword}) async {
     final response = await _apiClient.post(
       ApiEndpoints.authRegister,

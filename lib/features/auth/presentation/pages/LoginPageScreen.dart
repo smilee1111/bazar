@@ -1,6 +1,7 @@
 import 'package:bazar/app/routes/app_routes.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
+import 'package:bazar/features/auth/presentation/pages/ForgotPasswordPageScreen.dart';
 import 'package:bazar/features/auth/presentation/pages/SignupPageScreen.dart';
 import 'package:bazar/features/auth/presentation/state/auth_state.dart';
 import 'package:bazar/features/auth/presentation/view_model/auth_viewmodel.dart';
@@ -45,6 +46,10 @@ class _LoginpagescreenState extends ConsumerState<Loginpagescreen> {
             password: _passwordController.text,
           );
     }
+  }
+
+  void _navigateToForgotPassword() {
+    AppRoutes.push(context, const ForgotPasswordPageScreen());
   }
 
    void _handleGoogleSignIn() {
@@ -138,6 +143,19 @@ class _LoginpagescreenState extends ConsumerState<Loginpagescreen> {
                     return null;
                   },
                 ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _navigateToForgotPassword,
+                child: Text(
+                  'Forgot password?',
+                  style: AppTextStyle.minimalTexts.copyWith(
+                    decoration: TextDecoration.underline,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 15),
             SizedBox(
               width: 150,

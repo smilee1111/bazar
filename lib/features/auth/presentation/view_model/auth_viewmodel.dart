@@ -4,7 +4,9 @@ import 'package:bazar/features/auth/domain/entities/auth_entity.dart';
 import 'package:bazar/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/login_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:bazar/features/auth/domain/usecases/request_password_reset_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/register_usecase.dart';
+import 'package:bazar/features/auth/domain/usecases/reset_password_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/upload_photo_usecase.dart';
 import 'package:bazar/features/auth/data/repositories/auth_repository.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
@@ -23,6 +25,8 @@ class AuthViewModel extends Notifier<AuthState>{
   late final GetCurrentUserUsecase _getCurrentUserUsecase;
   late final LogoutUsecase _logoutUsecase;
   late final UploadPhotoUsecase _uploadPhotoUsecase;
+  late final RequestPasswordResetUsecase _requestPasswordResetUsecase;
+  late final ResetPasswordUsecase _resetPasswordUsecase;
 
 
   @override
@@ -33,6 +37,8 @@ class AuthViewModel extends Notifier<AuthState>{
     _getCurrentUserUsecase = ref.read(getCurrentUserUsecaseProvider);
     _logoutUsecase = ref.read(logoutUsecaseProvider);
     _uploadPhotoUsecase = ref.read(uploadPhotoUsecaseProvider);
+    _requestPasswordResetUsecase = ref.read(requestPasswordResetUsecaseProvider);
+    _resetPasswordUsecase = ref.read(resetPasswordUsecaseProvider);
     return const AuthState();
   }
 
@@ -86,6 +92,49 @@ class AuthViewModel extends Notifier<AuthState>{
       ),
       (user) =>
           state = state.copyWith(status: AuthStatus.authenticated, user: user),
+    );
+  }
+
+  Future<bool> requestPasswordReset({required String email}) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final result = await _requestPasswordResetUsecase(
+      RequestPasswordResetParams(email: email.trim()),
+    );
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (success) {
+        state = state.copyWith(status: AuthStatus.loaded, errorMessage: null);
+        return success;
+      },
+    );
+  }
+
+  Future<bool> resetPassword({
+    required String token,
+    required String password,
+  }) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final result = await _resetPasswordUsecase(
+      ResetPasswordParams(token: token.trim(), password: password),
+    );
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (success) {
+        state = state.copyWith(status: AuthStatus.loaded, errorMessage: null);
+        return success;
+      },
     );
   }
 

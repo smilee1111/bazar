@@ -94,6 +94,8 @@ class ApiEndpoints {
   // Backend: app.use('/api/auth', authRoutes)
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';
+  static const String authRequestPasswordReset = '/auth/request-password-reset';
+  static String authResetPassword(String token) => '/auth/reset-password/$token';
   static const String userUploadPhoto = '/auth/update-profile';
   static String userPicture(String filename) =>
       '$mediaServerUrl/user_photos/$filename';
