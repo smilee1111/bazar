@@ -118,7 +118,7 @@ class AuthRepository implements IAuthRepository{
   @override
   Future<Either<Failure, bool>> resetPassword({
     required String token,
-    required String password,
+    required String newPassword,
   }) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No internet connection'));
@@ -126,7 +126,7 @@ class AuthRepository implements IAuthRepository{
     try {
       final result = await _authRemoteDataSource.resetPassword(
         token: token,
-        password: password,
+        newPassword: newPassword,
       );
       return Right(result);
     } on DioException catch (e) {
@@ -134,6 +134,36 @@ class AuthRepository implements IAuthRepository{
         ApiFailure(
           statusCode: e.response?.statusCode,
           message: e.response?.data['message'] ?? 'Failed to reset password',
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> verifyResetOtp({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await _authRemoteDataSource.verifyResetOtp(
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          statusCode: e.response?.statusCode,
+          message: e.response?.data['message'] ?? 'Failed to verify OTP',
         ),
       );
     } catch (e) {

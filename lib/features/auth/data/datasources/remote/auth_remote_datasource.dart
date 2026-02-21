@@ -102,7 +102,7 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
   Future<bool> requestPasswordReset(String email) async {
     final response = await _apiClient.post(
       ApiEndpoints.authRequestPasswordReset,
-      data: {'email': email},
+      data: {'email': email, 'clientType': 'mobile'},
     );
     if (response.data is Map<String, dynamic>) {
       return response.data['success'] == true;
@@ -111,13 +111,40 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
   }
 
   @override
+  Future<bool> verifyResetOtp({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.authVerifyResetOtp,
+      data: {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      },
+    );
+
+    final body = response.data;
+    if (body is! Map<String, dynamic>) {
+      throw Exception('Invalid response from verify OTP endpoint');
+    }
+    if (body['success'] != true) {
+      throw Exception(body['message']?.toString() ?? 'OTP verification failed');
+    }
+    return true;
+  }
+
+  @override
   Future<bool> resetPassword({
     required String token,
-    required String password,
+    required String newPassword,
   }) async {
     final response = await _apiClient.post(
       ApiEndpoints.authResetPassword(token),
-      data: {'password': password},
+      data: {'newPassword': newPassword},
     );
     if (response.data is Map<String, dynamic>) {
       return response.data['success'] == true;
@@ -135,7 +162,7 @@ class AuthRemoteDatasource  implements IAuthRemoteDataSource{
 
     if(response.data['success']== true){
       final data = response.data['data'] as Map<String, dynamic>;
-      final registerUser = AuthApiModel.fromJson(data);
+      AuthApiModel.fromJson(data);
     }
 
     return user;

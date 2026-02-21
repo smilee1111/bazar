@@ -95,6 +95,7 @@ class ApiEndpoints {
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';
   static const String authRequestPasswordReset = '/auth/request-password-reset';
+  static const String authVerifyResetOtp = '/auth/verify-reset-otp';
   static String authResetPassword(String token) => '/auth/reset-password/$token';
   static const String userUploadPhoto = '/auth/update-profile';
   static String userPicture(String filename) =>

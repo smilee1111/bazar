@@ -8,15 +8,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ResetPasswordParams extends Equatable {
   final String token;
-  final String password;
+  final String newPassword;
 
   const ResetPasswordParams({
     required this.token,
-    required this.password,
+    required this.newPassword,
   });
 
   @override
-  List<Object?> get props => [token, password];
+  List<Object?> get props => [token, newPassword];
 }
 
 final resetPasswordUsecaseProvider = Provider<ResetPasswordUsecase>((ref) {
@@ -34,7 +34,7 @@ class ResetPasswordUsecase
   Future<Either<Failure, bool>> call(ResetPasswordParams params) {
     return _authRepository.resetPassword(
       token: params.token,
-      password: params.password,
+      newPassword: params.newPassword,
     );
   }
 }

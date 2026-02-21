@@ -35,8 +35,9 @@ class _ForgotPasswordPageScreenState
     if (ok) {
       SnackbarUtils.showSuccess(
         context,
-        'Reset instructions sent. Check your email.',
+        'OTP sent to your email. Use it to reset your password.',
       );
+      _openResetPage();
       return;
     }
     final err = ref.read(authViewModelProvider).errorMessage ?? 'Request failed';
@@ -65,7 +66,7 @@ class _ForgotPasswordPageScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Enter your account email and we will send password reset instructions.',
+                  'Enter your account email and we will send a reset OTP.',
                   style: AppTextStyle.minimalTexts.copyWith(fontSize: 13),
                 ),
                 const SizedBox(height: 24),
@@ -94,13 +95,13 @@ class _ForgotPasswordPageScreenState
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Send Reset Link'),
+                      : const Text('Send OTP'),
                 ),
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: _openResetPage,
                   child: Text(
-                    'Already have reset token? Reset now',
+                    'Already have OTP? Reset now',
                     style: AppTextStyle.minimalTexts.copyWith(
                       decoration: TextDecoration.underline,
                       fontSize: 12,

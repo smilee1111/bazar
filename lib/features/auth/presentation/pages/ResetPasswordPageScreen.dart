@@ -19,7 +19,8 @@ class ResetPasswordPageScreen extends ConsumerStatefulWidget {
 
 class _ResetPasswordPageScreenState
     extends ConsumerState<ResetPasswordPageScreen> {
-  final _tokenController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _otpController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -27,8 +28,15 @@ class _ResetPasswordPageScreenState
   bool _obscureConfirmPassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    _emailController.text = widget.prefilledEmail ?? '';
+  }
+
+  @override
   void dispose() {
-    _tokenController.dispose();
+    _emailController.dispose();
+    _otpController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -36,17 +44,42 @@ class _ResetPasswordPageScreenState
 
   Future<void> _handleResetPassword() async {
     if (!_formKey.currentState!.validate()) return;
-    final ok = await ref.read(authViewModelProvider.notifier).resetPassword(
-      token: _tokenController.text.trim(),
-      password: _passwordController.text,
+
+    final ok = await ref.read(authViewModelProvider.notifier).verifyResetOtp(
+      email: _emailController.text.trim(),
+      otp: _otpController.text.trim(),
+      newPassword: _passwordController.text,
+      confirmPassword: _confirmPasswordController.text,
     );
+
     if (!mounted) return;
-    if (ok) {
-      SnackbarUtils.showSuccess(context, 'Password reset successful. Please login.');
-      AppRoutes.pushAndRemoveUntil(context, const Loginpagescreen());
+    if (!ok) {
+      final err =
+          ref.read(authViewModelProvider).errorMessage ??
+          'Invalid OTP or OTP expired';
+      SnackbarUtils.showError(context, err);
       return;
     }
-    final err = ref.read(authViewModelProvider).errorMessage ?? 'Reset failed';
+
+    SnackbarUtils.showSuccess(context, 'Password reset successful. Please login.');
+    AppRoutes.pushAndRemoveUntil(context, const Loginpagescreen());
+  }
+
+  Future<void> _resendOtp() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      SnackbarUtils.showError(context, 'Enter a valid email first');
+      return;
+    }
+    final ok = await ref
+        .read(authViewModelProvider.notifier)
+        .requestPasswordReset(email: email);
+    if (!mounted) return;
+    if (ok) {
+      SnackbarUtils.showSuccess(context, 'OTP resent to your email');
+      return;
+    }
+    final err = ref.read(authViewModelProvider).errorMessage ?? 'Failed to resend OTP';
     SnackbarUtils.showError(context, err);
   }
 
@@ -72,23 +105,60 @@ class _ResetPasswordPageScreenState
                   const SizedBox(height: 12),
                 ],
                 Text(
-                  'Paste the token from your email and set a new password.',
+                  'Enter your email, OTP, and your new password to continue.',
                   style: AppTextStyle.minimalTexts.copyWith(fontSize: 13),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
-                  controller: _tokenController,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: 'Reset Token',
-                    hintText: 'Paste token here',
-                    prefixIcon: Icon(Icons.vpn_key_outlined),
+                    labelText: 'Email',
+                    hintText: 'example@gmail.com',
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Reset token is required';
+                    final text = value?.trim() ?? '';
+                    if (text.isEmpty) {
+                      return 'Email is required';
+                    }
+                    if (!text.contains('@')) {
+                      return 'Please enter a valid email';
                     }
                     return null;
                   },
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _otpController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'OTP',
+                    hintText: 'Enter OTP from email',
+                    prefixIcon: Icon(Icons.lock_clock_outlined),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'OTP is required';
+                    }
+                    return null;
+                  },
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: authState.status == AuthStatus.loading
+                        ? null
+                        : _resendOtp,
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: Text(
+                      'Resend OTP',
+                      style: AppTextStyle.minimalTexts.copyWith(
+                        fontSize: 12,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
@@ -155,6 +225,9 @@ class _ResetPasswordPageScreenState
                   onPressed: authState.status == AuthStatus.loading
                       ? null
                       : _handleResetPassword,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
                   child: authState.status == AuthStatus.loading
                       ? const SizedBox(
                           width: 20,

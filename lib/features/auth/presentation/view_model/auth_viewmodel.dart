@@ -8,6 +8,7 @@ import 'package:bazar/features/auth/domain/usecases/request_password_reset_useca
 import 'package:bazar/features/auth/domain/usecases/register_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/reset_password_usecase.dart';
 import 'package:bazar/features/auth/domain/usecases/upload_photo_usecase.dart';
+import 'package:bazar/features/auth/domain/usecases/verify_reset_otp_usecase.dart';
 import 'package:bazar/features/auth/data/repositories/auth_repository.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/features/auth/presentation/state/auth_state.dart';
@@ -26,6 +27,7 @@ class AuthViewModel extends Notifier<AuthState>{
   late final LogoutUsecase _logoutUsecase;
   late final UploadPhotoUsecase _uploadPhotoUsecase;
   late final RequestPasswordResetUsecase _requestPasswordResetUsecase;
+  late final VerifyResetOtpUsecase _verifyResetOtpUsecase;
   late final ResetPasswordUsecase _resetPasswordUsecase;
 
 
@@ -38,6 +40,7 @@ class AuthViewModel extends Notifier<AuthState>{
     _logoutUsecase = ref.read(logoutUsecaseProvider);
     _uploadPhotoUsecase = ref.read(uploadPhotoUsecaseProvider);
     _requestPasswordResetUsecase = ref.read(requestPasswordResetUsecaseProvider);
+    _verifyResetOtpUsecase = ref.read(verifyResetOtpUsecaseProvider);
     _resetPasswordUsecase = ref.read(resetPasswordUsecaseProvider);
     return const AuthState();
   }
@@ -117,11 +120,41 @@ class AuthViewModel extends Notifier<AuthState>{
 
   Future<bool> resetPassword({
     required String token,
-    required String password,
+    required String newPassword,
   }) async {
     state = state.copyWith(status: AuthStatus.loading);
     final result = await _resetPasswordUsecase(
-      ResetPasswordParams(token: token.trim(), password: password),
+      ResetPasswordParams(token: token.trim(), newPassword: newPassword),
+    );
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (success) {
+        state = state.copyWith(status: AuthStatus.loaded, errorMessage: null);
+        return success;
+      },
+    );
+  }
+
+  Future<bool> verifyResetOtp({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    final result = await _verifyResetOtpUsecase(
+      VerifyResetOtpParams(
+        email: email.trim(),
+        otp: otp.trim(),
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      ),
     );
     return result.fold(
       (failure) {
