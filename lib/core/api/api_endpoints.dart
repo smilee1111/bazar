@@ -14,13 +14,14 @@ class ApiEndpoints {
   // For iOS Simulator use: 'http://localhost:5050/api'
   // For Physical Device use your computer's IP: 'http://192.168.x.x:5050/api'
 
-
-    // Configuration
+  // Configuration
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '10.1.30.239';
+  static const String _ipAddress = '192.168.101.11';
+  //192.168.1.93
+  //192.168.101.11'
   static const int _port = 5050;
 
-    // Base URLs
+  // Base URLs
   static String get _host {
     if (isPhysicalDevice) return _ipAddress;
     if (kIsWeb || Platform.isIOS) return 'localhost';
@@ -41,15 +42,63 @@ class ApiEndpoints {
   static String roleById(String id) => '/roles/$id';
 
   // // ============ Category Endpoints ============
-  // static const String categories = '/categories';
-  // static String categoryById(String id) => '/categories/$id';
+  static const String categories = '/categories';
+  static const String userCategories = '/user/categories';
+  static String categoryById(String id) => '/categories/$id';
+
+  // ============ Seller Application Endpoints ============
+  static const String sellerApplications = '/user/seller-applications';
+  static const String mySellerApplication = '/user/seller-applications/my';
+  static const String sellerApplicationUploadDocument =
+      '/user/seller-applications/upload-document';
+
+  // // ============ Shop Endpoints ============
+  static const String shops = '/shops';
+  static const String sellerShops = '/seller/shops';
+  static const String publicShopsFeed = '/shops/public';
+  static String publicShopById(String shopId) => '/shops/public/$shopId';
+  static String sellerShopById(String id) => '/seller/shops/$id';
+  static const String mySellerShop = '/seller/shops/my';
+  static const String userReviews = '/user/reviews';
+  static const String userSavedShops = '/user/saved-shops';
+  static const String userFavourites = '/user/favourites';
+
+  // ============ Shop Detail Endpoints ============
+  static String shopDetailsByShop(String shopId) => '/shops/$shopId/details';
+  static String shopDetailById(String shopId, String detailId) =>
+      '/shops/$shopId/details/$detailId';
+
+  // ============ Shop Review Endpoints ============
+  static String shopReviewsByShop(String shopId) => '/shops/$shopId/reviews';
+  static String shopReviewById(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId';
+  static String likeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/like';
+  static String unlikeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/unlike';
+  static String isShopReviewLiked(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/liked';
+  static String dislikeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/dislike';
+  static String undislikeShopReview(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/undislike';
+  static String isShopReviewDisliked(String shopId, String reviewId) =>
+      '/shops/$shopId/reviews/$reviewId/disliked';
+
+  // ============ Shop Photo Endpoints ============
+  static String shopPhotosByShop(String shopId) => '/shops/$shopId/photos';
+  static String shopPhotoById(String shopId, String photoId) =>
+      '/shops/$shopId/photos/$photoId';
 
   // ============ Auth Endpoints ============
   // Backend: app.use('/api/auth', authRoutes)
   static const String authLogin = '/auth/login';
   static const String authRegister = '/auth/register';
+  static const String authRequestPasswordReset = '/auth/request-password-reset';
+  static const String authVerifyResetOtp = '/auth/verify-reset-otp';
+  static String authResetPassword(String token) => '/auth/reset-password/$token';
   static const String userUploadPhoto = '/auth/update-profile';
-    static String userPicture(String filename) =>
+  static String userPicture(String filename) =>
       '$mediaServerUrl/user_photos/$filename';
 
   // ============ Admin User Endpoints ============

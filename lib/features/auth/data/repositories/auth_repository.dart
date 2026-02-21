@@ -96,6 +96,82 @@ class AuthRepository implements IAuthRepository{
   }
 
   @override
+  Future<Either<Failure, bool>> requestPasswordReset(String email) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await _authRemoteDataSource.requestPasswordReset(email);
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          statusCode: e.response?.statusCode,
+          message: e.response?.data['message'] ?? 'Failed to send reset request',
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await _authRemoteDataSource.resetPassword(
+        token: token,
+        newPassword: newPassword,
+      );
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          statusCode: e.response?.statusCode,
+          message: e.response?.data['message'] ?? 'Failed to reset password',
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> verifyResetOtp({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+    try {
+      final result = await _authRemoteDataSource.verifyResetOtp(
+        email: email,
+        otp: otp,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+      return Right(result);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          statusCode: e.response?.statusCode,
+          message: e.response?.data['message'] ?? 'Failed to verify OTP',
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, bool>> logout() async {
     try {
       final result = await _authDataSource.logOut();
@@ -106,11 +182,11 @@ class AuthRepository implements IAuthRepository{
   }
 
   @override
-  Future<Either<Failure, bool>> register(AuthEntity user, {String? roleName, String? confirmPassword}) async{
+  Future<Either<Failure, bool>> register(AuthEntity user, {String? confirmPassword}) async{
    if (await _networkInfo.isConnected){
    try{
     final apiModel = AuthApiModel.fromEntity(user);
-    await _authRemoteDataSource.register(apiModel, roleName: roleName, confirmPassword: confirmPassword);
+    await _authRemoteDataSource.register(apiModel, confirmPassword: confirmPassword);
     return const Right(true);
    }on DioException catch (e) {
         return Left(ApiFailure(
@@ -150,6 +226,27 @@ class AuthRepository implements IAuthRepository{
     if (await _networkInfo.isConnected) {
       try {
         final url = await _authRemoteDataSource.uploadPhoto(photo);
+        
+        // Update local Hive user to persist profilePic after app restart
+        try {
+          final localUser = await _authDataSource.getCurrentUser();
+          if (localUser != null) {
+            final updatedLocal = AuthHiveModel(
+              authId: localUser.authId,
+              fullName: localUser.fullName,
+              email: localUser.email,
+              phoneNumber: localUser.phoneNumber,
+              username: localUser.username,
+              password: localUser.password,
+              profilePic: url,
+              roleId: localUser.roleId,
+            );
+            await _authDataSource.updateUser(updatedLocal);
+          }
+        } catch (_) {
+          // Ignore local update errors - remote upload succeeded
+        }
+        
         return Right(url);
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));

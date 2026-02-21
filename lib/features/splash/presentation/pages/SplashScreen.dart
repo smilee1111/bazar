@@ -1,10 +1,10 @@
 import 'package:bazar/app/routes/app_routes.dart';
-import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/features/auth/presentation/pages/LoginPageScreen.dart';
 import 'package:bazar/features/dashboard/presentation/pages/DashboardScreen.dart';
 import 'package:bazar/features/splash/presentation/pages/LandingPageScreen.dart';
+import 'package:bazar/features/splash/presentation/widgets/branding_split_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,42 +42,15 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
 
   @override
   Widget build(BuildContext context) {
-     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Container(
-              alignment: Alignment.center,
-              width: double.infinity,
-              child: Image.asset(
-              'assets/images/bgimage.png',
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.fill
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              color: Color(0xFFF5F0C5),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Image.asset('assets/images/bazarlogo.png',),
-                  Text(
-                    "Find your Shop.",
-                    style: AppTextStyle.landingTexts
-                  ),
-                  
-                
-                ],
-              ),
-            ),
-          ),
-        ],
+    return Scaffold(
+      body: BrandingSplitLayout(
+        bottomChild: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Image.asset('assets/images/bazarlogo.png'),
+            Text('Find your Shop.', style: AppTextStyle.landingTexts),
+          ],
+        ),
       ),
     );
   }

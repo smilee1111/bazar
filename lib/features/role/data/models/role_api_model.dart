@@ -23,9 +23,9 @@ class RoleApiModel {
 //fromJSON
   factory RoleApiModel.fromJson(Map<String,dynamic> json){
     return RoleApiModel(
-      id: json['_id'] as String,
-      roleName: json['roleName'] as String,
-      status: json['status'] as String,
+      id: json['_id'] as String?,
+      roleName: json['roleName'] as String? ?? '',
+      status: json['status'] as String?,
     );
   }
   //toEntity

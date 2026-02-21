@@ -35,15 +35,31 @@ class RoleRemoteDatasource implements IRoleRemoteDataSource{
   }
 
   @override
-  Future<RoleApiModel?> getRoleById(String roleId) {
-    // TODO: implement getRoleById
-    throw UnimplementedError();
+  Future<RoleApiModel?> getRoleById(String roleId) async{
+    final response = await _apiClient.get(ApiEndpoints.roleById(roleId));
+    if (response.data['success'] == true) {
+      final data = response.data['data'] as Map<String, dynamic>;
+      return RoleApiModel.fromJson(data);
+    }
+    return null;
   }
 
   @override
-  Future<bool> updateRole(RoleApiModel role) {
-    // TODO: implement updateRole
-    throw UnimplementedError();
+  Future<bool> updateRole(RoleApiModel role) async{
+    if (role.id == null) {
+      throw ArgumentError('Role id is required for update');
+    }
+    final response = await _apiClient.put(
+      ApiEndpoints.roleById(role.id!),
+      data: role.toJson(),
+    );
+    return response.data['success'] == true;
+  }
+  
+  @override
+  Future<bool> deleteRole(String roleId) async{
+    final response = await _apiClient.delete(ApiEndpoints.roleById(roleId));
+    return response.data['success'] == true;
   }
 
 }
