@@ -31,7 +31,7 @@ class PublicShopCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final previewState = ref.watch(shopCardPreviewProvider(shop.shopId ?? ''));
+    final previewState = ref.watch(shopCardPreviewProvider(shop));
     final preview = previewState.maybeWhen(
       data: (value) => value,
       orElse: () => ShopCardPreview.empty,

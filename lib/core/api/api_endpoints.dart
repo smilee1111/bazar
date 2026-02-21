@@ -57,6 +57,8 @@ class ApiEndpoints {
   static const String sellerShops = '/seller/shops';
   static const String publicShopsFeed = '/shops/public';
   static String publicShopById(String shopId) => '/shops/public/$shopId';
+  static String publicShopRouteById(String shopId) =>
+      '/shops/public/$shopId/route';
   static String sellerShopById(String id) => '/seller/shops/$id';
   static const String mySellerShop = '/seller/shops/my';
   static const String userReviews = '/user/reviews';
@@ -96,7 +98,8 @@ class ApiEndpoints {
   static const String authRegister = '/auth/register';
   static const String authRequestPasswordReset = '/auth/request-password-reset';
   static const String authVerifyResetOtp = '/auth/verify-reset-otp';
-  static String authResetPassword(String token) => '/auth/reset-password/$token';
+  static String authResetPassword(String token) =>
+      '/auth/reset-password/$token';
   static const String userUploadPhoto = '/auth/update-profile';
   static String userPicture(String filename) =>
       '$mediaServerUrl/user_photos/$filename';

@@ -1,4 +1,5 @@
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
+import 'package:bazar/core/models/geo_point.dart';
 
 class ShopApiModel {
   final String? shopId;
@@ -9,6 +10,7 @@ class ShopApiModel {
   final List<String> categoryNames;
   final String? priceRange;
   final String shopAddress;
+  final GeoPoint? location;
   final String shopContact;
   final String? contactNumber;
   final String? email;
@@ -22,6 +24,7 @@ class ShopApiModel {
     this.categoryNames = const [],
     this.priceRange,
     required this.shopAddress,
+    this.location,
     required this.shopContact,
     this.contactNumber,
     this.email,
@@ -64,8 +67,9 @@ class ShopApiModel {
           .toList();
     }
     if (value is Map<String, dynamic>) {
-      final single =
-          _asString(value['categoryName'] ?? value['name'] ?? value['title']);
+      final single = _asString(
+        value['categoryName'] ?? value['name'] ?? value['title'],
+      );
       return single == null || single.isEmpty ? const [] : [single];
     }
     return const [];
@@ -95,8 +99,11 @@ class ShopApiModel {
       slug: _asString(json['slug']),
       description: _asString(json['description']),
       categoryNames: parsedCategories,
-      priceRange: _asString(json['priceRange'] ?? json['priceTag'] ?? json['price']),
+      priceRange: _asString(
+        json['priceRange'] ?? json['priceTag'] ?? json['price'],
+      ),
       shopAddress: requiredString(json['shopAddress']),
+      location: _parseLocation(json['location']),
       shopContact: requiredString(json['shopContact']),
       contactNumber: _asString(json['contactNumber']),
       email: _asString(json['email']),
@@ -112,8 +119,10 @@ class ShopApiModel {
       if (description != null && description!.isNotEmpty)
         'description': description,
       if (categoryNames.isNotEmpty) 'categoryNames': categoryNames,
-      if (priceRange != null && priceRange!.isNotEmpty) 'priceRange': priceRange,
+      if (priceRange != null && priceRange!.isNotEmpty)
+        'priceRange': priceRange,
       'shopAddress': shopAddress,
+      if (location != null) 'location': location!.toGeoJson(),
       'shopContact': shopContact,
       if (contactNumber != null && contactNumber!.isNotEmpty)
         'contactNumber': contactNumber,
@@ -131,6 +140,7 @@ class ShopApiModel {
       categoryNames: categoryNames,
       priceRange: priceRange,
       shopAddress: shopAddress,
+      location: location,
       shopContact: shopContact,
       contactNumber: contactNumber,
       email: email,
@@ -147,6 +157,7 @@ class ShopApiModel {
       categoryNames: entity.categoryNames,
       priceRange: entity.priceRange,
       shopAddress: entity.shopAddress,
+      location: entity.location,
       shopContact: entity.shopContact,
       contactNumber: entity.contactNumber,
       email: entity.email,
@@ -155,5 +166,14 @@ class ShopApiModel {
 
   static List<ShopEntity> toEntityList(List<ShopApiModel> models) {
     return models.map((item) => item.toEntity()).toList();
+  }
+
+  static GeoPoint? _parseLocation(dynamic value) {
+    if (value is! Map<String, dynamic>) return null;
+    try {
+      return GeoPoint.fromGeoJson(value);
+    } catch (_) {
+      return null;
+    }
   }
 }

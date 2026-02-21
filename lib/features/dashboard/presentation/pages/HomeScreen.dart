@@ -50,17 +50,20 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     });
     final result = await ref.read(getAllCategoryUseCaseProvider)();
     if (!mounted) return;
-    result.fold((_) {
-      setState(() {
-        _categories = const [];
-        _isLoadingCategories = false;
-      });
-    }, (items) {
-      setState(() {
-        _categories = items;
-        _isLoadingCategories = false;
-      });
-    });
+    result.fold(
+      (_) {
+        setState(() {
+          _categories = const [];
+          _isLoadingCategories = false;
+        });
+      },
+      (items) {
+        setState(() {
+          _categories = items;
+          _isLoadingCategories = false;
+        });
+      },
+    );
   }
 
   Future<void> _openFilters() async {
@@ -89,194 +92,194 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                Center(
-                  child: Container(
-                    width: 46,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.accent2,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  'Filter Shops',
-                  style: AppTextStyle.inputBox.copyWith(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Refine by category, location, price and rating.',
-                  style: AppTextStyle.minimalTexts.copyWith(
-                    fontSize: 12,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Category',
-                  style: AppTextStyle.inputBox.copyWith(fontSize: 12),
-                ),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String?>(
-                  initialValue: selectedCategory,
-                  style: AppTextStyle.inputBox.copyWith(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.category_outlined),
-                  ),
-                  items: [
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(
-                        'Any category',
-                        style: AppTextStyle.inputBox.copyWith(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                    Center(
+                      child: Container(
+                        width: 46,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent2,
+                          borderRadius: BorderRadius.circular(999),
                         ),
                       ),
                     ),
-                    ..._categories.map(
-                      (item) => DropdownMenuItem<String?>(
-                        value: item.categoryName,
-                        child: Text(
-                          item.categoryName,
-                          style: AppTextStyle.inputBox.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                    const SizedBox(height: 14),
+                    Text(
+                      'Filter Shops',
+                      style: AppTextStyle.inputBox.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Refine by category, location, price and rating.',
+                      style: AppTextStyle.minimalTexts.copyWith(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Category',
+                      style: AppTextStyle.inputBox.copyWith(fontSize: 12),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String?>(
+                      initialValue: selectedCategory,
+                      style: AppTextStyle.inputBox.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.category_outlined),
+                      ),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(
+                            'Any category',
+                            style: AppTextStyle.inputBox.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    setSheetState(() => selectedCategory = value);
-                  },
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Location',
-                  style: AppTextStyle.inputBox.copyWith(fontSize: 12),
-                ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: locationCtrl,
-                  decoration: const InputDecoration(
-                    hintText: 'City, street, area',
-                    prefixIcon: Icon(Icons.location_on_outlined),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Price Range',
-                  style: AppTextStyle.inputBox.copyWith(fontSize: 12),
-                ),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<PriceFilter>(
-                  initialValue: selectedPrice,
-                  style: AppTextStyle.inputBox.copyWith(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.sell_outlined),
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: PriceFilter.any,
-                      child: Text(
-                        'Any',
-                        style: AppTextStyle.inputBox.copyWith(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: PriceFilter.budget,
-                      child: Text(
-                        'Budget',
-                        style: AppTextStyle.inputBox.copyWith(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: PriceFilter.mid,
-                      child: Text(
-                        'Mid',
-                        style: AppTextStyle.inputBox.copyWith(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    DropdownMenuItem(
-                      value: PriceFilter.premium,
-                      child: Text(
-                        'Premium',
-                        style: AppTextStyle.inputBox.copyWith(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setSheetState(() => selectedPrice = value);
-                  },
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Minimum Rating',
-                  style: AppTextStyle.inputBox.copyWith(fontSize: 12),
-                ),
-                const SizedBox(height: 6),
-                _RatingStarSelector(
-                  selectedMinRating: selectedMinRating,
-                  onChanged: (value) {
-                    setSheetState(() => selectedMinRating = value);
-                  },
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(ctx, const _ShopFilters());
-                        },
-                        child: const Text('Reset'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(
-                            ctx,
-                            _ShopFilters(
-                              categoryName: selectedCategory,
-                              locationQuery: locationCtrl.text.trim(),
-                              minRating: selectedMinRating.toDouble(),
-                              priceFilter: selectedPrice,
+                        ..._categories.map(
+                          (item) => DropdownMenuItem<String?>(
+                            value: item.categoryName,
+                            child: Text(
+                              item.categoryName,
+                              style: AppTextStyle.inputBox.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          );
-                        },
-                        child: const Text('Apply'),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setSheetState(() => selectedCategory = value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Location',
+                      style: AppTextStyle.inputBox.copyWith(fontSize: 12),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: locationCtrl,
+                      decoration: const InputDecoration(
+                        hintText: 'City, street, area',
+                        prefixIcon: Icon(Icons.location_on_outlined),
                       ),
                     ),
-                  ],
-                ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Price Range',
+                      style: AppTextStyle.inputBox.copyWith(fontSize: 12),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<PriceFilter>(
+                      initialValue: selectedPrice,
+                      style: AppTextStyle.inputBox.copyWith(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.sell_outlined),
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: PriceFilter.any,
+                          child: Text(
+                            'Any',
+                            style: AppTextStyle.inputBox.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: PriceFilter.budget,
+                          child: Text(
+                            'Budget',
+                            style: AppTextStyle.inputBox.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: PriceFilter.mid,
+                          child: Text(
+                            'Mid',
+                            style: AppTextStyle.inputBox.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: PriceFilter.premium,
+                          child: Text(
+                            'Premium',
+                            style: AppTextStyle.inputBox.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setSheetState(() => selectedPrice = value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Minimum Rating',
+                      style: AppTextStyle.inputBox.copyWith(fontSize: 12),
+                    ),
+                    const SizedBox(height: 6),
+                    _RatingStarSelector(
+                      selectedMinRating: selectedMinRating,
+                      onChanged: (value) {
+                        setSheetState(() => selectedMinRating = value);
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx, const _ShopFilters());
+                            },
+                            child: const Text('Reset'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(
+                                ctx,
+                                _ShopFilters(
+                                  categoryName: selectedCategory,
+                                  locationQuery: locationCtrl.text.trim(),
+                                  minRating: selectedMinRating.toDouble(),
+                                  priceFilter: selectedPrice,
+                                ),
+                              );
+                            },
+                            child: const Text('Apply'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -298,7 +301,9 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     final description = (shop.description ?? '').toLowerCase();
     final haystack = '${shop.shopName} ${shop.shopAddress} $description'
         .toLowerCase();
-    final categoryFromField = shop.categoryNames.map((e) => e.toLowerCase()).toList();
+    final categoryFromField = shop.categoryNames
+        .map((e) => e.toLowerCase())
+        .toList();
 
     final matchesCategory =
         category.isEmpty ||
@@ -335,7 +340,8 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     }
 
     final text =
-        '${shop.shopName} ${shop.description ?? ''} ${shop.shopAddress}'.toLowerCase();
+        '${shop.shopName} ${shop.description ?? ''} ${shop.shopAddress}'
+            .toLowerCase();
     final budgetKeywords = ['budget', 'cheap', 'affordable', 'low cost'];
     final premiumKeywords = ['premium', 'luxury', 'exclusive', 'high-end'];
     final midKeywords = ['mid', 'standard', 'moderate'];
@@ -373,7 +379,9 @@ class _HomescreenState extends ConsumerState<Homescreen> {
           shop.shopName.toLowerCase().contains(query) ||
           shop.shopAddress.toLowerCase().contains(query) ||
           shop.shopContact.toLowerCase().contains(query);
-      return queryMatch && _matchesCategoryAndLocation(shop) && _matchesPrice(shop);
+      return queryMatch &&
+          _matchesCategoryAndLocation(shop) &&
+          _matchesPrice(shop);
     }).toList();
 
     final isLoadingInitial =
@@ -462,14 +470,14 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                   itemCount: filtered.length,
                   itemBuilder: (_, index) {
                     final shop = filtered[index];
-                    final shopId = shop.shopId ?? '';
                     final previewAsync = ref.watch(
-                      shopCardPreviewProvider(shopId),
+                      shopCardPreviewProvider(shop),
                     );
                     final ratingPass = _filters.minRating <= 0
                         ? true
                         : previewAsync.maybeWhen(
-                            data: (value) => value.averageRating >= _filters.minRating,
+                            data: (value) =>
+                                value.averageRating >= _filters.minRating,
                             orElse: () => true,
                           );
                     if (!ratingPass) {
@@ -493,15 +501,12 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                         isFavourite: favouriteState.favouriteShopIds.contains(
                           shop.shopId ?? '',
                         ),
-                        isReviewed: reviewedIds.contains(
-                          shop.shopId ?? '',
-                        ),
+                        isReviewed: reviewedIds.contains(shop.shopId ?? ''),
                         isSaveBusy: savedState.processingShopIds.contains(
                           shop.shopId ?? '',
                         ),
-                        isFavouriteBusy: favouriteState.processingShopIds.contains(
-                          shop.shopId ?? '',
-                        ),
+                        isFavouriteBusy: favouriteState.processingShopIds
+                            .contains(shop.shopId ?? ''),
                         onToggleSave: () {
                           final shopId = shop.shopId ?? '';
                           if (shopId.isEmpty) return;
@@ -865,7 +870,11 @@ class _RatingChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (showStar) ...[
-              const Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
+              const Icon(
+                Icons.star_rounded,
+                size: 14,
+                color: AppColors.warning,
+              ),
               const SizedBox(width: 4),
             ],
             Text(

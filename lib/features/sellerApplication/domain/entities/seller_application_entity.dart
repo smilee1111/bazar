@@ -1,11 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:bazar/core/models/geo_point.dart';
 
 /// Enum representing seller application status
-enum SellerApplicationStatus {
-  pending,
-  approved,
-  rejected,
-}
+enum SellerApplicationStatus { pending, approved, rejected }
 
 class SellerApplicationEntity extends Equatable {
   final String? applicationId;
@@ -14,6 +11,7 @@ class SellerApplicationEntity extends Equatable {
   final String categoryName;
   final String businessPhone;
   final String businessAddress;
+  final GeoPoint? location;
   final String? description;
   final String? documentUrl;
   final SellerApplicationStatus status;
@@ -26,6 +24,7 @@ class SellerApplicationEntity extends Equatable {
     required this.categoryName,
     required this.businessPhone,
     required this.businessAddress,
+    this.location,
     this.description,
     this.documentUrl,
     required this.status,
@@ -34,15 +33,16 @@ class SellerApplicationEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        applicationId,
-        userId,
-        businessName,
-        categoryName,
-        businessPhone,
-        businessAddress,
-        description,
-        documentUrl,
-        status,
-        adminRemark,
-      ];
+    applicationId,
+    userId,
+    businessName,
+    categoryName,
+    businessPhone,
+    businessAddress,
+    location,
+    description,
+    documentUrl,
+    status,
+    adminRemark,
+  ];
 }

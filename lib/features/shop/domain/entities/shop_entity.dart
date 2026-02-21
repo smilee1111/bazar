@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:bazar/core/models/geo_point.dart';
 
 class ShopEntity extends Equatable {
   final String? shopId;
@@ -9,6 +10,7 @@ class ShopEntity extends Equatable {
   final List<String> categoryNames;
   final String? priceRange;
   final String shopAddress;
+  final GeoPoint? location;
   final String shopContact;
   final String? contactNumber;
   final String? email;
@@ -22,6 +24,7 @@ class ShopEntity extends Equatable {
     this.categoryNames = const [],
     this.priceRange,
     required this.shopAddress,
+    this.location,
     required this.shopContact,
     this.contactNumber,
     this.email,
@@ -37,6 +40,7 @@ class ShopEntity extends Equatable {
     categoryNames,
     priceRange,
     shopAddress,
+    location,
     shopContact,
     contactNumber,
     email,

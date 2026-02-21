@@ -51,5 +51,7 @@
 	<string>We need access to the microphone for recording audio.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to the photo library to select photos and videos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to show shops on map and provide directions.</string>
 </dict>
 </plist>

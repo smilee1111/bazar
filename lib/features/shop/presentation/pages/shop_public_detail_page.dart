@@ -2,8 +2,12 @@ import 'dart:io';
 
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
+import 'package:bazar/core/models/route_result.dart';
+import 'package:bazar/core/services/location/location_service.dart';
+import 'package:bazar/core/services/maps/route_service.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
+import 'package:bazar/core/widgets/shop_route_map.dart';
 import 'package:bazar/features/savedShop/presentation/view_model/saved_shop_view_model.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_content_view_model.dart';
@@ -15,6 +19,7 @@ import 'package:bazar/features/shopReview/domain/entities/shop_review_entity.dar
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 class ShopPublicDetailPage extends ConsumerStatefulWidget {
   const ShopPublicDetailPage({
@@ -34,11 +39,22 @@ class ShopPublicDetailPage extends ConsumerStatefulWidget {
 class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
   bool _isOwner = false;
   String? _currentUserId;
+  final _locationService = LocationService();
+  LatLng? _shopLocation;
+  LatLng? _userLocation;
+  RouteResult? _route;
+  bool _isLoadingRoute = false;
 
   @override
   void initState() {
     super.initState();
     _isOwner = widget.allowOwnerEdit;
+    _shopLocation = widget.shop.location == null
+        ? null
+        : LatLng(
+            widget.shop.location!.latitude,
+            widget.shop.location!.longitude,
+          );
     Future.microtask(() async {
       _currentUserId = ref.read(userSessionServiceProvider).getCurrentUserId();
       final sessionUserId = _currentUserId;
@@ -58,6 +74,63 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
           .read(shopContentViewModelProvider.notifier)
           .load(widget.shop.shopId ?? '', forceRefresh: true);
     });
+  }
+
+  Future<void> _loadRouteToShop() async {
+    final shopLoc = _shopLocation;
+    if (shopLoc == null) {
+      SnackbarUtils.showWarning(
+        context,
+        'Location is not available for this shop.',
+      );
+      return;
+    }
+
+    final shopId = widget.shop.shopId ?? '';
+    if (shopId.isEmpty) {
+      SnackbarUtils.showError(context, 'Unable to find shop id for routing.');
+      return;
+    }
+
+    setState(() => _isLoadingRoute = true);
+    try {
+      final userLoc = await _locationService.getCurrentLocation();
+      if (!mounted) return;
+      if (userLoc == null) {
+        setState(() => _isLoadingRoute = false);
+        SnackbarUtils.showError(
+          context,
+          'Could not access your current location. Please enable location permissions.',
+        );
+        return;
+      }
+
+      final route = await ref
+          .read(routeServiceProvider)
+          .getRouteToShop(
+            shopId: shopId,
+            fromLat: userLoc.latitude,
+            fromLng: userLoc.longitude,
+          );
+
+      if (!mounted) return;
+      setState(() {
+        _userLocation = userLoc;
+        _route = route;
+        _isLoadingRoute = false;
+      });
+
+      if (route == null) {
+        SnackbarUtils.showError(
+          context,
+          'Route unavailable. Try again in a moment.',
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoadingRoute = false);
+      SnackbarUtils.showError(context, 'Failed to load route to shop.');
+    }
   }
 
   Future<File?> _pickImage() async {
@@ -261,6 +334,7 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                           await ref
                               .read(favouriteViewModelProvider.notifier)
                               .ensureReviewedFavourite(shopId);
+                          if (!mounted) return;
                         }
                         ref
                             .read(userReviewViewModelProvider.notifier)
@@ -378,7 +452,10 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
 
   Future<void> _deleteReview(ShopReviewEntity review) async {
     if (!_canEditReview(review) || review.reviewId == null) {
-      SnackbarUtils.showWarning(context, 'You can only delete your own review.');
+      SnackbarUtils.showWarning(
+        context,
+        'You can only delete your own review.',
+      );
       return;
     }
     final confirm = await showDialog<bool>(
@@ -400,10 +477,12 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
     );
     if (confirm != true) return;
 
-    final ok = await ref.read(shopContentViewModelProvider.notifier).deleteReview(
-      shopId: widget.shop.shopId ?? '',
-      reviewId: review.reviewId!,
-    );
+    final ok = await ref
+        .read(shopContentViewModelProvider.notifier)
+        .deleteReview(
+          shopId: widget.shop.shopId ?? '',
+          reviewId: review.reviewId!,
+        );
     if (!mounted) return;
     if (ok) {
       ref
@@ -432,12 +511,13 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
   Future<void> _toggleSaveShop() async {
     final shopId = widget.shop.shopId ?? '';
     if (shopId.isEmpty) return;
-    final wasSaved = ref.read(savedShopViewModelProvider).savedShopIds.contains(
-          shopId,
-        );
-    final ok = await ref.read(savedShopViewModelProvider.notifier).toggleSaved(
-          shopId,
-        );
+    final wasSaved = ref
+        .read(savedShopViewModelProvider)
+        .savedShopIds
+        .contains(shopId);
+    final ok = await ref
+        .read(savedShopViewModelProvider.notifier)
+        .toggleSaved(shopId);
     if (!mounted) return;
     if (ok) {
       SnackbarUtils.showSuccess(
@@ -531,7 +611,9 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                         child: isFavouriteBusy
                             ? const Padding(
                                 padding: EdgeInsets.all(7),
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : IconButton(
                                 tooltip: isFavourite
@@ -555,7 +637,9 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                         child: isSaveBusy
                             ? const Padding(
                                 padding: EdgeInsets.all(7),
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : IconButton(
                                 tooltip: isSaved
@@ -618,6 +702,48 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                 ],
               ),
             ),
+            if (_shopLocation != null) ...[
+              const SizedBox(height: 12),
+              ShopRouteMap(
+                shopLocation: _shopLocation!,
+                userLocation: _userLocation,
+                route: _route,
+              ),
+              const SizedBox(height: 8),
+              if (_route != null)
+                Row(
+                  children: [
+                    _routeStat(
+                      icon: Icons.straighten_rounded,
+                      label: '${_route!.distanceKm} km',
+                    ),
+                    const SizedBox(width: 8),
+                    _routeStat(
+                      icon: Icons.timer_outlined,
+                      label: '${_route!.durationMin} min',
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoadingRoute ? null : _loadRouteToShop,
+                  icon: _isLoadingRoute
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.near_me_rounded),
+                  label: Text(
+                    _route == null
+                        ? 'Navigate From My Location'
+                        : 'Refresh Route',
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
             if ((state.errorMessage ?? '').isNotEmpty) ...[
@@ -697,6 +823,30 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
             child: Text(
               value,
               style: AppTextStyle.inputBox.copyWith(fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _routeStat({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F5EE),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.accent2),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: AppColors.primary),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: AppTextStyle.inputBox.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

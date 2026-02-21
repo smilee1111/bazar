@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bazar/core/models/geo_point.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/features/sellerApplication/domain/entities/seller_application_entity.dart';
 import 'package:bazar/features/sellerApplication/domain/usecases/create_seller_application_usecase.dart';
@@ -80,6 +81,7 @@ class SellerApplicationViewModel extends Notifier<SellerApplicationState> {
     required String categoryName,
     required String businessPhone,
     required String businessAddress,
+    GeoPoint? location,
     String? description,
     String? documentUrl,
     String? documentFilePath,
@@ -128,6 +130,7 @@ class SellerApplicationViewModel extends Notifier<SellerApplicationState> {
       categoryName: categoryName.trim(),
       businessPhone: businessPhone.trim(),
       businessAddress: businessAddress.trim(),
+      location: location,
       description: description?.trim().isEmpty ?? true
           ? null
           : description?.trim(),
