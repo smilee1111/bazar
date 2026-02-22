@@ -67,8 +67,9 @@ class _DashboardscreenState extends ConsumerState<Dashboardscreen> {
       },
       (roles) {
         final matched = roles.where((role) => role.roleId == roleId).toList();
-        final isSeller = matched.isNotEmpty &&
-            matched.first.roleName.toLowerCase() == 'seller';
+        final isSeller = (matched.isNotEmpty &&
+                matched.first.roleName.toLowerCase() == 'seller') ||
+            roleId.toLowerCase().contains('seller');
         setState(() {
           _sellerAccessFromSession = isSeller;
           _didResolveSellerAccess = true;

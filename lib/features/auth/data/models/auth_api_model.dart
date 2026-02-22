@@ -60,7 +60,8 @@ class AuthApiModel {
           parsedRoleId = roleField;
         } else if (roleField is Map) {
           final Map<String, dynamic> roleMap = Map<String, dynamic>.from(roleField);
-          parsedRoleId = (roleMap['roleId'] ?? roleMap['_id'])?.toString();
+          // Store Mongo role _id for session consistency with role lookup on app restart.
+          parsedRoleId = (roleMap['_id'] ?? roleMap['roleId'])?.toString();
           try {
             parsedRole = RoleApiModel.fromJson(roleMap);
           } catch (_) {
@@ -73,7 +74,7 @@ class AuthApiModel {
       if (parsedRole == null && json['role'] != null && json['role'] is Map) {
         try {
           parsedRole = RoleApiModel.fromJson(Map<String, dynamic>.from(json['role'] as Map));
-          parsedRoleId ??= (json['role']['roleId'] ?? json['role']['_id'])?.toString();
+          parsedRoleId ??= (json['role']['_id'] ?? json['role']['roleId'])?.toString();
         } catch (_) {
           // ignore parse errors
         }
