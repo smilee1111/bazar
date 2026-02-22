@@ -64,6 +64,16 @@ class ApiEndpoints {
   static const String userReviews = '/user/reviews';
   static const String userSavedShops = '/user/saved-shops';
   static const String userFavourites = '/user/favourites';
+  static const String userNotifications = '/user/notifications';
+  static String userNotificationById(String id) => '/user/notifications/$id';
+  static String markUserNotificationAsRead(String id) =>
+      '/user/notifications/$id/read';
+  static const String userNotificationUnreadCount =
+      '/user/notifications/unread-count';
+  static const String userNotificationMarkMultipleRead =
+      '/user/notifications/mark-multiple-read';
+  static const String userNotificationMarkAllRead =
+      '/user/notifications/mark-all-read';
 
   // ============ Shop Detail Endpoints ============
   static String shopDetailsByShop(String shopId) => '/shops/$shopId/details';

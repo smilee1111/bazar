@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bazar/features/notification/presentation/widgets/notification_bell.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DashboardAppBar({super.key});
@@ -21,7 +22,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 12),
-          child: Icon(Icons.notifications, size: 30, color: Colors.grey[700]),
+          child: const NotificationBell(),
         ),
       ],
     );

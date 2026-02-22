@@ -54,7 +54,7 @@ class AuthApiModel {
       String? parsedRoleId;
       RoleApiModel? parsedRole;
 
-      final dynamic roleField = json['roleId'];
+      final dynamic roleField = json['roleId'] ?? json['role'];
       if (roleField != null) {
         if (roleField is String) {
           parsedRoleId = roleField;
@@ -77,6 +77,10 @@ class AuthApiModel {
         } catch (_) {
           // ignore parse errors
         }
+      }
+      // Some auth responses send role as a plain string id.
+      if (parsedRoleId == null && json['role'] is String) {
+        parsedRoleId = json['role'] as String;
       }
 
       return AuthApiModel(
