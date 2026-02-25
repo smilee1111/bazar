@@ -28,4 +28,29 @@ class LocationService {
 
     return true;
   }
+
+  Stream<LatLng?> watchLocation({
+    LocationAccuracy desiredAccuracy = LocationAccuracy.high,
+    int distanceFilter = 12,
+  }) async* {
+    final hasPermission = await _checkAndRequestPermission();
+    if (!hasPermission) {
+      yield null;
+      return;
+    }
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      yield null;
+      return;
+    }
+
+    final settings = LocationSettings(
+      accuracy: desiredAccuracy,
+      distanceFilter: distanceFilter,
+    );
+    yield* Geolocator.getPositionStream(locationSettings: settings).map(
+      (position) => LatLng(position.latitude, position.longitude),
+    );
+  }
 }

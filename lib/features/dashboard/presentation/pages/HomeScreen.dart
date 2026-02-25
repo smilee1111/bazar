@@ -6,6 +6,8 @@ import 'package:bazar/features/dashboard/presentation/view_model/shop_card_previ
 import 'package:bazar/features/dashboard/presentation/widgets/public_shop_card.dart';
 import 'package:bazar/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:bazar/features/savedShop/presentation/view_model/saved_shop_view_model.dart';
+import 'package:bazar/features/sensor/presentation/state/sensor_state.dart';
+import 'package:bazar/features/sensor/presentation/view_model/sensor_view_model.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/pages/shop_public_detail_page.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_view_model.dart';
@@ -25,6 +27,8 @@ class _HomescreenState extends ConsumerState<Homescreen> {
   List<CategoryEntity> _categories = const [];
   bool _isLoadingCategories = false;
   _ShopFilters _filters = const _ShopFilters();
+  DateTime? _lastShakeRefreshAt;
+  SensorViewModel? _sensorViewModel;
 
   @override
   void initState() {
@@ -34,14 +38,44 @@ class _HomescreenState extends ConsumerState<Homescreen> {
       ref.read(savedShopViewModelProvider.notifier).loadSavedShops();
       ref.read(favouriteViewModelProvider.notifier).loadFavourites();
       ref.read(userReviewViewModelProvider.notifier).loadReviewedShops();
+      _sensorViewModel = ref.read(sensorViewModelProvider.notifier);
+      _sensorViewModel?.attach();
       _loadCategories();
     });
   }
 
   @override
   void dispose() {
+    _sensorViewModel?.detach();
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _refreshFeeds({bool forceRefresh = true}) async {
+    await Future.wait([
+      ref
+          .read(shopViewModelProvider.notifier)
+          .loadPublicShops(forceRefresh: forceRefresh),
+      ref
+          .read(savedShopViewModelProvider.notifier)
+          .loadSavedShops(forceRefresh: forceRefresh),
+      ref
+          .read(favouriteViewModelProvider.notifier)
+          .loadFavourites(forceRefresh: forceRefresh),
+      ref
+          .read(userReviewViewModelProvider.notifier)
+          .loadReviewedShops(forceRefresh: forceRefresh),
+    ]);
+  }
+
+  Future<void> _onShakeDetected() async {
+    final now = DateTime.now();
+    if (_lastShakeRefreshAt != null &&
+        now.difference(_lastShakeRefreshAt!) < const Duration(seconds: 3)) {
+      return;
+    }
+    _lastShakeRefreshAt = now;
+    await _refreshFeeds();
   }
 
   Future<void> _loadCategories() async {
@@ -364,6 +398,13 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<SensorState>(sensorViewModelProvider, (previous, next) {
+      final previousCount = previous?.shakeCount ?? 0;
+      if (next.shakeCount > previousCount) {
+        _onShakeDetected();
+      }
+    });
+
     final shopState = ref.watch(shopViewModelProvider);
     final savedState = ref.watch(savedShopViewModelProvider);
     final favouriteState = ref.watch(favouriteViewModelProvider);
@@ -390,22 +431,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
     return SafeArea(
       top: false,
       child: RefreshIndicator(
-        onRefresh: () async {
-          await Future.wait([
-            ref
-                .read(shopViewModelProvider.notifier)
-                .loadPublicShops(forceRefresh: true),
-            ref
-                .read(savedShopViewModelProvider.notifier)
-                .loadSavedShops(forceRefresh: true),
-            ref
-                .read(favouriteViewModelProvider.notifier)
-                .loadFavourites(forceRefresh: true),
-            ref
-                .read(userReviewViewModelProvider.notifier)
-                .loadReviewedShops(forceRefresh: true),
-          ]);
-        },
+        onRefresh: _refreshFeeds,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
