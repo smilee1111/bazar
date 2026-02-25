@@ -5,6 +5,7 @@ import 'package:bazar/features/shopDetail/domain/entities/shop_detail_entity.dar
 import 'package:bazar/features/shopPhoto/domain/entities/shop_photo_entity.dart';
 import 'package:bazar/features/shopReview/domain/entities/shop_review_entity.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ShopDetailSection extends StatelessWidget {
   const ShopDetailSection({
@@ -334,6 +335,19 @@ class _ReviewTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reviewerName = _resolveReviewerName(review);
+    final reviewerRole = _resolveReviewerRole(review);
+    final reviewedDateText = _resolveReviewedDateText(review);
+    final reviewerPhotoUrl = _resolveReviewerPhotoUrl(review);
+
+    final subtitleParts = <String>[];
+    if (reviewerRole != null && reviewerRole.isNotEmpty) {
+      subtitleParts.add(reviewerRole);
+    }
+    if (reviewedDateText != null && reviewedDateText.isNotEmpty) {
+      subtitleParts.add(reviewedDateText);
+    }
+    final reviewerSubtitle = subtitleParts.join(' • ');
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -347,17 +361,37 @@ class _ReviewTile extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _ReviewerAvatar(
+                name: reviewerName ?? 'Reviewer',
+                photoUrl: reviewerPhotoUrl,
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: reviewerName == null
                     ? const SizedBox.shrink()
-                    : Text(
-                        reviewerName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyle.minimalTexts.copyWith(
-                          fontSize: 11,
-                          color: Colors.grey.shade700,
-                        ),
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            reviewerName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyle.inputBox.copyWith(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (reviewerSubtitle.isNotEmpty)
+                            Text(
+                              reviewerSubtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyle.minimalTexts.copyWith(
+                                fontSize: 11,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                        ],
                       ),
               ),
               _ReviewStars(stars: review.starNum),
@@ -410,6 +444,36 @@ class _ReviewTile extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReviewerAvatar extends StatelessWidget {
+  const _ReviewerAvatar({
+    required this.name,
+    required this.photoUrl,
+  });
+
+  final String name;
+  final String? photoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmed = name.trim();
+    final letter = trimmed.isEmpty ? 'R' : trimmed.substring(0, 1).toUpperCase();
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: AppColors.accent2,
+      foregroundImage: (photoUrl != null && photoUrl!.isNotEmpty)
+          ? NetworkImage(photoUrl!)
+          : null,
+      child: Text(
+        letter,
+        style: AppTextStyle.inputBox.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -584,4 +648,25 @@ String? _resolveReviewerName(ShopReviewEntity review) {
   if (raw.isEmpty) return 'Reviewer';
   if (raw.length <= 20 || raw.contains('@')) return raw;
   return 'Reviewer';
+}
+
+String? _resolveReviewerRole(ShopReviewEntity review) {
+  final role = review.reviewedByRole?.trim() ?? '';
+  if (role.isEmpty) return null;
+  return role;
+}
+
+String? _resolveReviewedDateText(ShopReviewEntity review) {
+  final reviewedAt = review.reviewedAt;
+  if (reviewedAt == null) return null;
+  return DateFormat('d MMM yyyy').format(reviewedAt.toLocal());
+}
+
+String? _resolveReviewerPhotoUrl(ShopReviewEntity review) {
+  final raw = review.reviewedByProfilePic?.trim() ?? '';
+  if (raw.isEmpty) return null;
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+  if (raw.startsWith('/')) return '${ApiEndpoints.serverUrl}$raw';
+  if (raw.startsWith('uploads/')) return '${ApiEndpoints.serverUrl}/$raw';
+  return null;
 }

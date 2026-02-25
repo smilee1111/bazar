@@ -561,6 +561,10 @@ class ShopContentViewModel extends Notifier<ShopContentState> {
   }) {
     final hasName = updated.reviewedByName?.trim().isNotEmpty ?? false;
     final hasReviewerId = updated.reviewedBy?.trim().isNotEmpty ?? false;
+    final hasRole = updated.reviewedByRole?.trim().isNotEmpty ?? false;
+    final hasProfilePic =
+        updated.reviewedByProfilePic?.trim().isNotEmpty ?? false;
+    final hasReviewedAt = updated.reviewedAt != null;
 
     return ShopReviewEntity(
       reviewId: updated.reviewId ?? previous?.reviewId ?? fallbackReviewId,
@@ -570,6 +574,11 @@ class ShopContentViewModel extends Notifier<ShopContentState> {
           : (previous?.shopId ?? fallbackShopId),
       reviewedBy: hasReviewerId ? updated.reviewedBy : previous?.reviewedBy,
       reviewedByName: hasName ? updated.reviewedByName : previous?.reviewedByName,
+      reviewedByRole: hasRole ? updated.reviewedByRole : previous?.reviewedByRole,
+      reviewedByProfilePic: hasProfilePic
+          ? updated.reviewedByProfilePic
+          : previous?.reviewedByProfilePic,
+      reviewedAt: hasReviewedAt ? updated.reviewedAt : previous?.reviewedAt,
       starNum: updated.starNum,
       likesCount: updated.likesCount,
       dislikeCount: updated.dislikeCount,
