@@ -1,3 +1,4 @@
+import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -55,14 +56,14 @@ class _ProfileContactCardState extends ConsumerState<ProfileContactCard> {
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: AppColors.border,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ),
                   Text('Edit Profile', style: AppTextStyle.inputBox.copyWith(fontSize: 18, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 6),
-                  Text('Update your display name, contact and username', style: AppTextStyle.minimalTexts.copyWith(color: Colors.grey.shade600)),
+                  Text('Update your display name, contact and username', style: AppTextStyle.minimalTexts.copyWith(color: AppColors.secondary)),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: fullNameCtrl,
@@ -174,51 +175,79 @@ class _ProfileContactCardState extends ConsumerState<ProfileContactCard> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 20,
-            offset: Offset(0, 10),
+            color: AppColors.primary.withValues(alpha: 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.fullName, style: AppTextStyle.inputBox.copyWith(fontSize: 16, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 6),
-                    Text('@${widget.username}', style: AppTextStyle.minimalTexts.copyWith(color: Colors.grey.shade600)),
-                  ],
+          // Header row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 8, 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.fullName,
+                        style: AppTextStyle.inputBox.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        '@${widget.username}',
+                        style: AppTextStyle.minimalTexts.copyWith(
+                          fontSize: 13,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                onPressed: _showEditDialog,
-                icon: const Icon(Icons.edit_outlined),
-              ),
-            ],
+                IconButton(
+                  onPressed: _showEditDialog,
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                  tooltip: 'Edit profile',
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 12),
-          _ContactRow(
-            label: 'Phone',
-            value: widget.phoneNumber,
-            icon: Icons.phone_rounded,
-          ),
-          const SizedBox(height: 18),
-          _ContactRow(
-            label: 'Mail',
-            value: widget.email,
-            icon: Icons.mail_outline_rounded,
+          const Divider(height: 1, color: AppColors.border),
+          // Contact rows
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+            child: Column(
+              children: [
+                _ContactRow(
+                  label: 'Phone',
+                  value: widget.phoneNumber,
+                  icon: Icons.phone_rounded,
+                ),
+                const SizedBox(height: 16),
+                _ContactRow(
+                  label: 'Email',
+                  value: widget.email,
+                  icon: Icons.mail_outline_rounded,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -240,17 +269,17 @@ class _ContactRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF2EFE3),
+            color: AppColors.surfaceStrong,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 20, color: Colors.brown.shade700),
+          child: Icon(icon, size: 20, color: AppColors.primary),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,16 +287,19 @@ class _ContactRow extends StatelessWidget {
               Text(
                 label,
                 style: AppTextStyle.minimalTexts.copyWith(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.accent,
+                  letterSpacing: 0.8,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 3),
               Text(
                 value,
                 style: AppTextStyle.inputBox.copyWith(
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],

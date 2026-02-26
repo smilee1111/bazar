@@ -1,3 +1,4 @@
+import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:flutter/material.dart';
 
@@ -15,39 +16,41 @@ class ProfileActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 20,
-            offset: Offset(0, 10),
+            color: AppColors.primary.withValues(alpha: 0.07),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         children: [
+          // Settings row
           Material(
             color: Colors.transparent,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: InkWell(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               onTap: onSettingsTap,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF2EFE3),
+                        color: AppColors.surfaceStrong,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.settings_outlined,
                         size: 20,
-                        color: Colors.brown.shade700,
+                        color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -57,46 +60,59 @@ class ProfileActionCard extends StatelessWidget {
                         style: AppTextStyle.inputBox.copyWith(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.grey.shade500,
+                      color: AppColors.textSecondary,
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Align(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 210),
-                child: ElevatedButton.icon(
-                  onPressed: onLogoutTap,
-                  icon: const Icon(Icons.logout, size: 18),
-                  label: Text(
-                    'Log Out',
-                    style: AppTextStyle.inputBox.copyWith(
-                      fontSize: 14,
-                      color: Colors.white,
-                      letterSpacing: 0.4,
+          const Divider(height: 1, color: AppColors.border),
+          // Logout row
+          Material(
+            color: Colors.transparent,
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+            child: InkWell(
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+              onTap: onLogoutTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.logout_rounded,
+                        size: 20,
+                        color: AppColors.error,
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 18,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Log Out',
+                        style: AppTextStyle.inputBox.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.error,
+                        ),
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textSecondary,
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
