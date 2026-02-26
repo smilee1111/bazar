@@ -1,4 +1,5 @@
 import 'package:bazar/features/sellerApplication/domain/entities/seller_application_entity.dart';
+import 'package:bazar/core/models/geo_point.dart';
 
 /// API Model to handle JSON <-> Entity conversion
 class SellerApplicationApiModel {
@@ -8,6 +9,7 @@ class SellerApplicationApiModel {
   final String categoryName;
   final String businessPhone;
   final String businessAddress;
+  final GeoPoint? location;
   final String? description;
   final String? documentUrl;
   final String status;
@@ -20,6 +22,7 @@ class SellerApplicationApiModel {
     required this.categoryName,
     required this.businessPhone,
     required this.businessAddress,
+    this.location,
     this.description,
     this.documentUrl,
     required this.status,
@@ -56,6 +59,7 @@ class SellerApplicationApiModel {
       categoryName: requiredString(json['categoryName']),
       businessPhone: requiredString(json['businessPhone']),
       businessAddress: requiredString(json['businessAddress']),
+      location: _parseLocation(json['location']),
       description: asString(json['description']),
       documentUrl: asString(json['documentUrl']),
       status: resolvedStatus.isEmpty ? 'pending' : resolvedStatus,
@@ -71,9 +75,19 @@ class SellerApplicationApiModel {
       "categoryName": categoryName,
       "businessPhone": businessPhone,
       "businessAddress": businessAddress,
+      if (location != null) "location": location!.toGeoJson(),
       if (description != null) "description": description,
       if (documentUrl != null) "documentUrl": documentUrl,
     };
+  }
+
+  static GeoPoint? _parseLocation(dynamic value) {
+    if (value is! Map<String, dynamic>) return null;
+    try {
+      return GeoPoint.fromGeoJson(value);
+    } catch (_) {
+      return null;
+    }
   }
 
   // Convert to Entity
@@ -97,6 +111,7 @@ class SellerApplicationApiModel {
       categoryName: categoryName,
       businessPhone: businessPhone,
       businessAddress: businessAddress,
+      location: location,
       description: description,
       documentUrl: documentUrl,
       status: parsedStatus,
@@ -124,6 +139,7 @@ class SellerApplicationApiModel {
       categoryName: entity.categoryName,
       businessPhone: entity.businessPhone,
       businessAddress: entity.businessAddress,
+      location: entity.location,
       description: entity.description,
       documentUrl: entity.documentUrl,
       status: statusValue,

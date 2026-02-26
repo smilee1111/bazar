@@ -1,5 +1,7 @@
 import 'package:bazar/app/theme/textstyle.dart';
+import 'package:bazar/core/models/geo_point.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
+import 'package:bazar/core/widgets/location_picker_map.dart';
 import 'package:bazar/features/category/domain/entities/category_entity.dart';
 import 'package:bazar/features/category/domain/usecases/get_all_category_usecase.dart';
 import 'package:bazar/features/sellerApplication/domain/entities/seller_application_entity.dart';
@@ -7,6 +9,7 @@ import 'package:bazar/features/sellerApplication/presentation/view_model/seller_
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:path/path.dart' as p;
 
 class SellerApplicationPage extends ConsumerStatefulWidget {
@@ -39,6 +42,7 @@ class _SellerApplicationPageState extends ConsumerState<SellerApplicationPage> {
   String? _selectedDocumentPath;
   String? _selectedDocumentName;
   bool _hasPickedNewDocument = false;
+  GeoPoint? _selectedLocation;
 
   @override
   void initState() {
@@ -55,6 +59,7 @@ class _SellerApplicationPageState extends ConsumerState<SellerApplicationPage> {
     _descriptionController = TextEditingController(
       text: data?.description ?? '',
     );
+    _selectedLocation = data?.location;
     _selectedDocumentPath = data?.documentUrl;
     final existingDocument = data?.documentUrl;
     _selectedDocumentName =
@@ -141,6 +146,10 @@ class _SellerApplicationPageState extends ConsumerState<SellerApplicationPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedLocation == null) {
+      SnackbarUtils.showError(context, 'Please pin your business location.');
+      return;
+    }
 
     final success = await ref
         .read(sellerApplicationViewModelProvider.notifier)
@@ -149,6 +158,7 @@ class _SellerApplicationPageState extends ConsumerState<SellerApplicationPage> {
           categoryName: _selectedCategoryName ?? '',
           businessPhone: _phoneController.text,
           businessAddress: _addressController.text,
+          location: _selectedLocation,
           description: _descriptionController.text,
           documentUrl: _hasPickedNewDocument ? null : _selectedDocumentPath,
           documentFilePath: _hasPickedNewDocument
@@ -247,6 +257,35 @@ class _SellerApplicationPageState extends ConsumerState<SellerApplicationPage> {
                       return 'Business address is required.';
                     }
                     return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Pin Business Location',
+                  style: AppTextStyle.inputBox.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                LocationPickerMap(
+                  initialLocation: _selectedLocation == null
+                      ? null
+                      : LatLng(
+                          _selectedLocation!.latitude,
+                          _selectedLocation!.longitude,
+                        ),
+                  height: 320,
+                  onChanged: (location, address) {
+                    setState(() {
+                      _selectedLocation = GeoPoint(
+                        latitude: location.latitude,
+                        longitude: location.longitude,
+                      );
+                      if ((address ?? '').trim().isNotEmpty) {
+                        _addressController.text = address!.trim();
+                      }
+                    });
                   },
                 ),
                 const SizedBox(height: 12),

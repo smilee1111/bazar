@@ -1,4 +1,5 @@
 import 'package:bazar/app/routes/app_routes.dart';
+import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/features/auth/presentation/pages/LoginPageScreen.dart';
@@ -16,12 +17,13 @@ class Splashscreen extends ConsumerStatefulWidget {
 }
 
 class _SplashscreenState extends ConsumerState<Splashscreen> {
-   @override
+  @override
   void initState() {
     super.initState();
 
     // Navigate after 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
       // Check if user is already logged in
       final userSessionService = ref.read(userSessionServiceProvider);
       final isLoggedIn = userSessionService.isLoggedIn();
@@ -47,8 +49,15 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
         bottomChild: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Image.asset('assets/images/bazarlogo.png'),
-            Text('Find your Shop.', style: AppTextStyle.landingTexts),
+            Image.asset('assets/images/bazarlogo.png', width: 128, height: 128),
+            Text(
+              'Find your Shop.',
+              style: AppTextStyle.landingTexts.copyWith(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
           ],
         ),
       ),

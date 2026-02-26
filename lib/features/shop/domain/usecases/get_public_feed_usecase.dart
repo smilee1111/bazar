@@ -10,14 +10,18 @@ final getPublicFeedUsecaseProvider = Provider<GetPublicFeedUsecase>((ref) {
   return GetPublicFeedUsecase(repository: ref.read(shopRepositoryProvider));
 });
 
-class GetPublicFeedUsecase implements UsecaseWithoutParams<List<ShopEntity>> {
+class GetPublicFeedUsecase
+    implements UsecaseWithParams<List<ShopEntity>, PaginationParams> {
   final IShopRepository _repository;
 
   GetPublicFeedUsecase({required IShopRepository repository})
     : _repository = repository;
 
   @override
-  Future<Either<Failure, List<ShopEntity>>> call() {
-    return _repository.getPublicFeed();
+  Future<Either<Failure, List<ShopEntity>>> call(PaginationParams params) {
+    return _repository.getPublicFeed(
+      page: params.page,
+      limit: params.limit,
+    );
   }
 }

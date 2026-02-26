@@ -11,7 +11,7 @@ abstract interface class IShopRemoteDataSource {
   Future<ShopApiModel> updateShop(ShopApiModel shop);
   Future<bool> deleteShop(String shopId);
 
-  Future<List<ShopApiModel>> getPublicFeed();
+  Future<List<ShopApiModel>> getPublicFeed({int page = 1, int limit = 15});
   Future<ShopApiModel> getPublicShopById(String shopId);
 }
 
@@ -93,8 +93,10 @@ class ShopRemoteDataSource implements IShopRemoteDataSource {
   }
 
   @override
-  Future<List<ShopApiModel>> getPublicFeed() async {
-    final response = await _apiClient.get(ApiEndpoints.publicShopsFeed);
+  Future<List<ShopApiModel>> getPublicFeed({int page = 1, int limit = 15}) async {
+    final response = await _apiClient.get(
+      ApiEndpoints.publicShopsFeedPaged(page: page, limit: limit),
+    );
     return _extractShopList(response.data);
   }
 

@@ -31,7 +31,7 @@ class PublicShopCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final previewState = ref.watch(shopCardPreviewProvider(shop.shopId ?? ''));
+    final previewState = ref.watch(shopCardPreviewProvider(shop));
     final preview = previewState.maybeWhen(
       data: (value) => value,
       orElse: () => ShopCardPreview.empty,
@@ -40,14 +40,23 @@ class PublicShopCard extends ConsumerWidget {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
+      elevation: 0,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.accent2),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.darkBrown.withValues(alpha: 0.05),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +93,7 @@ class PublicShopCard extends ConsumerWidget {
                   ),
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: Colors.grey.shade500,
+                    color: AppColors.textSecondary.withValues(alpha: 0.65),
                   ),
                 ],
               ),
@@ -121,7 +130,7 @@ class PublicShopCard extends ConsumerWidget {
                 shop.shopAddress,
                 style: AppTextStyle.minimalTexts.copyWith(
                   fontSize: 12,
-                  color: Colors.grey.shade800,
+                  color: AppColors.textSecondary,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -132,7 +141,7 @@ class PublicShopCard extends ConsumerWidget {
                   shop.description!.trim(),
                   style: AppTextStyle.minimalTexts.copyWith(
                     fontSize: 11,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textSecondary.withValues(alpha: 0.92),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -197,16 +206,16 @@ class _PreviewPhotos extends StatelessWidget {
       return Container(
         height: 74,
         decoration: BoxDecoration(
-          color: const Color(0xFFF3EFE5),
+          color: AppColors.surfaceStrong,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.accent2),
+          border: Border.all(color: AppColors.border),
         ),
         alignment: Alignment.center,
         child: Text(
           'No photos yet',
           style: AppTextStyle.minimalTexts.copyWith(
             fontSize: 11,
-            color: Colors.grey.shade700,
+            color: AppColors.textSecondary,
           ),
         ),
       );
@@ -221,9 +230,9 @@ class _PreviewPhotos extends StatelessWidget {
             child: Container(
               margin: EdgeInsets.only(right: index == 2 ? 0 : 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3EFE5),
+                color: AppColors.surfaceStrong,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.accent2),
+                border: Border.all(color: AppColors.border),
               ),
               clipBehavior: Clip.antiAlias,
               child: hasImage
@@ -247,7 +256,7 @@ class _PhotoPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFF0EBDD),
+      color: AppColors.cream,
       alignment: Alignment.center,
       child: const Icon(
         Icons.photo_outlined,
@@ -302,9 +311,9 @@ class _MetaTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3EFE5),
+        color: AppColors.surfaceStrong,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.accent2),
+        border: Border.all(color: AppColors.border),
       ),
       child: Text(
         label,
@@ -352,7 +361,7 @@ class _ActionIcon extends StatelessWidget {
               icon: Icon(
                 icon,
                 size: 18,
-                color: isActive ? activeColor : Colors.grey.shade600,
+                color: isActive ? activeColor : AppColors.textSecondary,
               ),
             ),
     );

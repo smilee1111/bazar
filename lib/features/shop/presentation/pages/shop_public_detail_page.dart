@@ -1,10 +1,18 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
+import 'package:bazar/core/models/route_result.dart';
+import 'package:bazar/core/services/location/location_service.dart';
+import 'package:bazar/core/services/maps/route_service.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
+import 'package:bazar/core/widgets/shop_route_map.dart';
 import 'package:bazar/features/savedShop/presentation/view_model/saved_shop_view_model.dart';
+import 'package:bazar/features/sensor/presentation/state/sensor_state.dart';
+import 'package:bazar/features/sensor/presentation/view_model/sensor_view_model.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_content_view_model.dart';
 import 'package:bazar/features/favourite/presentation/view_model/favourite_view_model.dart';
@@ -15,6 +23,7 @@ import 'package:bazar/features/shopReview/domain/entities/shop_review_entity.dar
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 class ShopPublicDetailPage extends ConsumerStatefulWidget {
   const ShopPublicDetailPage({
@@ -34,11 +43,25 @@ class ShopPublicDetailPage extends ConsumerStatefulWidget {
 class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
   bool _isOwner = false;
   String? _currentUserId;
+  final _locationService = LocationService();
+  LatLng? _shopLocation;
+  LatLng? _userLocation;
+  RouteResult? _route;
+  bool _isLoadingRoute = false;
+  StreamSubscription<LatLng?>? _locationSubscription;
+  DateTime? _lastAutoRouteRefreshAt;
+  SensorViewModel? _sensorViewModel;
 
   @override
   void initState() {
     super.initState();
     _isOwner = widget.allowOwnerEdit;
+    _shopLocation = widget.shop.location == null
+        ? null
+        : LatLng(
+            widget.shop.location!.latitude,
+            widget.shop.location!.longitude,
+          );
     Future.microtask(() async {
       _currentUserId = ref.read(userSessionServiceProvider).getCurrentUserId();
       final sessionUserId = _currentUserId;
@@ -49,6 +72,8 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
       setState(() {
         _isOwner = _isOwner || ownerMatch;
       });
+      _sensorViewModel = ref.read(sensorViewModelProvider.notifier);
+      _sensorViewModel?.attach();
       await Future.wait([
         ref.read(savedShopViewModelProvider.notifier).loadSavedShops(),
         ref.read(favouriteViewModelProvider.notifier).loadFavourites(),
@@ -58,6 +83,139 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
           .read(shopContentViewModelProvider.notifier)
           .load(widget.shop.shopId ?? '', forceRefresh: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    _sensorViewModel?.detach();
+    super.dispose();
+  }
+
+  Future<void> _loadRouteToShop({
+    LatLng? fromLocation,
+    bool showErrors = true,
+  }) async {
+    final shopLoc = _shopLocation;
+    if (shopLoc == null) {
+      if (showErrors) {
+        SnackbarUtils.showWarning(
+          context,
+          'Location is not available for this shop.',
+        );
+      }
+      return;
+    }
+
+    final shopId = widget.shop.shopId ?? '';
+    if (shopId.isEmpty) {
+      if (showErrors) {
+        SnackbarUtils.showError(context, 'Unable to find shop id for routing.');
+      }
+      return;
+    }
+
+    setState(() => _isLoadingRoute = true);
+    try {
+      final userLoc = fromLocation ?? await _locationService.getCurrentLocation();
+      if (!mounted) return;
+      if (userLoc == null) {
+        setState(() => _isLoadingRoute = false);
+        if (showErrors) {
+          SnackbarUtils.showError(
+            context,
+            'Could not access your current location. Please enable location permissions.',
+          );
+        }
+        return;
+      }
+
+      final route = await ref
+          .read(routeServiceProvider)
+          .getRouteToShop(
+            shopId: shopId,
+            fromLat: userLoc.latitude,
+            fromLng: userLoc.longitude,
+          );
+
+      if (!mounted) return;
+      setState(() {
+        _userLocation = userLoc;
+        _route = route;
+        _isLoadingRoute = false;
+      });
+      _startLiveLocationTracking();
+
+      if (route == null && showErrors) {
+        SnackbarUtils.showError(
+          context,
+          'Route unavailable. Try again in a moment.',
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoadingRoute = false);
+      if (showErrors) {
+        SnackbarUtils.showError(context, 'Failed to load route to shop.');
+      }
+    }
+  }
+
+  void _startLiveLocationTracking() {
+    if (_locationSubscription != null) return;
+    _locationSubscription = _locationService.watchLocation().listen((location) {
+      if (!mounted || location == null) return;
+      setState(() => _userLocation = location);
+      _maybeAutoRefreshRoute(location);
+    });
+  }
+
+  void _maybeAutoRefreshRoute(LatLng currentLocation) {
+    final isMoving = ref.read(sensorViewModelProvider).isMoving;
+    if (!isMoving || _isLoadingRoute || _shopLocation == null) return;
+
+    final now = DateTime.now();
+    if (_lastAutoRouteRefreshAt != null &&
+        now.difference(_lastAutoRouteRefreshAt!) < const Duration(seconds: 15)) {
+      return;
+    }
+    _lastAutoRouteRefreshAt = now;
+    _loadRouteToShop(fromLocation: currentLocation, showErrors: false);
+  }
+
+  double? _bearingToShopDegrees() {
+    final user = _userLocation;
+    final shop = _shopLocation;
+    if (user == null || shop == null) return null;
+
+    final fromLat = _toRadians(user.latitude);
+    final fromLng = _toRadians(user.longitude);
+    final toLat = _toRadians(shop.latitude);
+    final toLng = _toRadians(shop.longitude);
+    final dLng = toLng - fromLng;
+
+    final y = math.sin(dLng) * math.cos(toLat);
+    final x =
+        (math.cos(fromLat) * math.sin(toLat)) -
+        (math.sin(fromLat) * math.cos(toLat) * math.cos(dLng));
+    final bearing = math.atan2(y, x);
+    return (bearing * 180 / math.pi + 360) % 360;
+  }
+
+  double _toRadians(double degrees) => degrees * (math.pi / 180);
+
+  double _toSignedAngle(double rawDegrees) {
+    var value = rawDegrees % 360;
+    if (value > 180) value -= 360;
+    if (value < -180) value += 360;
+    return value;
+  }
+
+  String _headingText(double signedAngle) {
+    final abs = signedAngle.abs().round();
+    if (abs <= 12) return 'Straight ahead';
+    if (signedAngle > 0) return 'Turn right ~$abs°';
+    return 'Turn left ~$abs°';
   }
 
   Future<File?> _pickImage() async {
@@ -261,6 +419,7 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                           await ref
                               .read(favouriteViewModelProvider.notifier)
                               .ensureReviewedFavourite(shopId);
+                          if (!mounted) return;
                         }
                         ref
                             .read(userReviewViewModelProvider.notifier)
@@ -378,7 +537,10 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
 
   Future<void> _deleteReview(ShopReviewEntity review) async {
     if (!_canEditReview(review) || review.reviewId == null) {
-      SnackbarUtils.showWarning(context, 'You can only delete your own review.');
+      SnackbarUtils.showWarning(
+        context,
+        'You can only delete your own review.',
+      );
       return;
     }
     final confirm = await showDialog<bool>(
@@ -400,10 +562,12 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
     );
     if (confirm != true) return;
 
-    final ok = await ref.read(shopContentViewModelProvider.notifier).deleteReview(
-      shopId: widget.shop.shopId ?? '',
-      reviewId: review.reviewId!,
-    );
+    final ok = await ref
+        .read(shopContentViewModelProvider.notifier)
+        .deleteReview(
+          shopId: widget.shop.shopId ?? '',
+          reviewId: review.reviewId!,
+        );
     if (!mounted) return;
     if (ok) {
       ref
@@ -432,12 +596,13 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
   Future<void> _toggleSaveShop() async {
     final shopId = widget.shop.shopId ?? '';
     if (shopId.isEmpty) return;
-    final wasSaved = ref.read(savedShopViewModelProvider).savedShopIds.contains(
-          shopId,
-        );
-    final ok = await ref.read(savedShopViewModelProvider.notifier).toggleSaved(
-          shopId,
-        );
+    final wasSaved = ref
+        .read(savedShopViewModelProvider)
+        .savedShopIds
+        .contains(shopId);
+    final ok = await ref
+        .read(savedShopViewModelProvider.notifier)
+        .toggleSaved(shopId);
     if (!mounted) return;
     if (ok) {
       SnackbarUtils.showSuccess(
@@ -478,10 +643,17 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<SensorState>(sensorViewModelProvider, (previous, next) {
+      final startedMoving = !(previous?.isMoving ?? false) && next.isMoving;
+      if (!startedMoving || _userLocation == null) return;
+      _maybeAutoRefreshRoute(_userLocation!);
+    });
+
     final state = ref.watch(shopContentViewModelProvider);
     final savedState = ref.watch(savedShopViewModelProvider);
     final favouriteState = ref.watch(favouriteViewModelProvider);
     final userReviewState = ref.watch(userReviewViewModelProvider);
+    final sensorState = ref.watch(sensorViewModelProvider);
 
     final shopId = widget.shop.shopId ?? '';
     final reviewedIds = {
@@ -496,14 +668,16 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.shop.shopName)),
-      body: RefreshIndicator(
-        onRefresh: () => ref
-            .read(shopContentViewModelProvider.notifier)
-            .load(widget.shop.shopId ?? '', forceRefresh: true),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          children: [
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: () => ref
+                .read(shopContentViewModelProvider.notifier)
+                .load(widget.shop.shopId ?? '', forceRefresh: true),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -531,7 +705,9 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                         child: isFavouriteBusy
                             ? const Padding(
                                 padding: EdgeInsets.all(7),
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : IconButton(
                                 tooltip: isFavourite
@@ -555,7 +731,9 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                         child: isSaveBusy
                             ? const Padding(
                                 padding: EdgeInsets.all(7),
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : IconButton(
                                 tooltip: isSaved
@@ -618,6 +796,53 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                 ],
               ),
             ),
+            if (_shopLocation != null) ...[
+              const SizedBox(height: 12),
+              ShopRouteMap(
+                shopLocation: _shopLocation!,
+                userLocation: _userLocation,
+                route: _route,
+              ),
+              const SizedBox(height: 8),
+              if (_route != null)
+                Row(
+                  children: [
+                    _routeStat(
+                      icon: Icons.straighten_rounded,
+                      label: '${_route!.distanceKm} km',
+                    ),
+                    const SizedBox(width: 8),
+                    _routeStat(
+                      icon: Icons.timer_outlined,
+                      label: '${_route!.durationMin} min',
+                    ),
+                  ],
+                ),
+              if (_route != null) ...[
+                const SizedBox(height: 8),
+                _compassHint(sensorState),
+              ],
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoadingRoute ? null : _loadRouteToShop,
+                  icon: _isLoadingRoute
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.near_me_rounded),
+                  label: Text(
+                    _route == null
+                        ? 'Navigate From My Location'
+                        : 'Refresh Route',
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
             const SizedBox(height: 12),
             if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
             if ((state.errorMessage ?? '').isNotEmpty) ...[
@@ -680,8 +905,10 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
                     );
               },
             ),
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -703,6 +930,69 @@ class _ShopPublicDetailPageState extends ConsumerState<ShopPublicDetailPage> {
       ),
     );
   }
+
+  Widget _compassHint(SensorState sensorState) {
+    final bearing = _bearingToShopDegrees();
+    if (bearing == null) {
+      return const SizedBox.shrink();
+    }
+    final delta = _toSignedAngle(bearing - sensorState.headingDegrees);
+    final turnText = _headingText(delta);
+    final rotationRad = delta * (math.pi / 180);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F5EE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent2),
+      ),
+      child: Row(
+        children: [
+          Transform.rotate(
+            angle: rotationRad,
+            child: const Icon(Icons.navigation_rounded, color: AppColors.info),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              turnText,
+              style: AppTextStyle.inputBox.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _routeStat({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F5EE),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.accent2),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: AppColors.primary),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: AppTextStyle.inputBox.copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class _StarRatingInput extends StatelessWidget {

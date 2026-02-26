@@ -1,9 +1,12 @@
 import 'package:bazar/app/theme/textstyle.dart';
+import 'package:bazar/core/models/geo_point.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
+import 'package:bazar/core/widgets/location_picker_map.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/presentation/view_model/shop_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 class ShopFormPage extends ConsumerStatefulWidget {
   const ShopFormPage({super.key, this.initialShop});
@@ -23,6 +26,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
   late final TextEditingController _shopContactCtrl;
   late final TextEditingController _contactNumberCtrl;
   late final TextEditingController _emailCtrl;
+  GeoPoint? _selectedLocation;
 
   bool get _isEditMode => widget.initialShop != null;
 
@@ -37,6 +41,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
     _shopContactCtrl = TextEditingController(text: shop?.shopContact ?? '');
     _contactNumberCtrl = TextEditingController(text: shop?.contactNumber ?? '');
     _emailCtrl = TextEditingController(text: shop?.email ?? '');
+    _selectedLocation = shop?.location;
 
     if (!_isEditMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -73,6 +78,7 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
       slug: _emptyToNull(_slugCtrl.text),
       description: _emptyToNull(_descriptionCtrl.text),
       shopAddress: _addressCtrl.text.trim(),
+      location: _selectedLocation,
       shopContact: _shopContactCtrl.text.trim(),
       contactNumber: _emptyToNull(_contactNumberCtrl.text),
       email: _emptyToNull(_emailCtrl.text),
@@ -157,6 +163,35 @@ class _ShopFormPageState extends ConsumerState<ShopFormPage> {
                     return 'Address must be at least 10 characters.';
                   }
                   return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Pin Shop Location',
+                style: AppTextStyle.inputBox.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              LocationPickerMap(
+                initialLocation: _selectedLocation == null
+                    ? null
+                    : LatLng(
+                        _selectedLocation!.latitude,
+                        _selectedLocation!.longitude,
+                      ),
+                height: 280,
+                onChanged: (location, address) {
+                  setState(() {
+                    _selectedLocation = GeoPoint(
+                      latitude: location.latitude,
+                      longitude: location.longitude,
+                    );
+                    if ((address ?? '').trim().isNotEmpty) {
+                      _addressCtrl.text = address!.trim();
+                    }
+                  });
                 },
               ),
               const SizedBox(height: 12),

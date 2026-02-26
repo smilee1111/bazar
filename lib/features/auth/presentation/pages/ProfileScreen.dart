@@ -1,4 +1,5 @@
 import 'package:bazar/app/routes/app_routes.dart';
+import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/api/api_endpoints.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
@@ -215,28 +216,47 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
       }
     });
 
-    return DefaultTextStyle.merge(
-      style: AppTextStyle.inputBox.copyWith(
-        fontSize: 14,
-        color: Colors.black87,
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('My Profile'),
+        automaticallyImplyLeading: false,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Hero banner + avatar
             ProfileHero(
               profileImageProvider: profileImageProvider,
               onEditTap: _showMediaPicker,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
+
+            // Name
             Text(
               usernameDisplay,
               style: AppTextStyle.inputBox.copyWith(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              authState.user?.email ?? session.getCurrentUserEmail() ?? '',
+              style: AppTextStyle.minimalTexts.copyWith(
+                fontSize: 13,
+                color: AppColors.secondary,
               ),
             ),
             const SizedBox(height: 24),
+
+            // Section label
+            _SectionLabel(label: 'Contact & Info'),
+            const SizedBox(height: 10),
+
             ProfileContactCard(
               phoneNumber:
                   authState.user?.phoneNumber ??
@@ -255,7 +275,12 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
                   session.getCurrentUserUsername() ??
                   'username',
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
+
+            // Section label
+            _SectionLabel(label: 'Account'),
+            const SizedBox(height: 10),
+
             ProfileActionCard(
               onSettingsTap: () {
                 AppRoutes.push(context, const SettingsPage());
@@ -274,6 +299,27 @@ class _ProfilescreenState extends ConsumerState<Profilescreen> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label.toUpperCase(),
+        style: AppTextStyle.minimalTexts.copyWith(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: AppColors.accent,
+          letterSpacing: 1.4,
         ),
       ),
     );

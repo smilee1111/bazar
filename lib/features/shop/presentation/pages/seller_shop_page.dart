@@ -175,6 +175,17 @@ class _ShopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final categoryText = shop.categoryNames.isEmpty
+        ? 'Uncategorized'
+        : shop.categoryNames.join(', ');
+    final priceText = (shop.priceRange ?? '').trim().isEmpty
+        ? 'Not specified'
+        : shop.priceRange!.trim();
+    final descText = (shop.description ?? '').trim();
+    final slugText = (shop.slug ?? '').trim().isEmpty ? '--' : shop.slug!.trim();
+    final secondaryPhone = (shop.contactNumber ?? '').trim();
+    final email = (shop.email ?? '').trim();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -209,22 +220,62 @@ class _ShopCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           _MiniRow(icon: Icons.location_on_outlined, value: shop.shopAddress),
           _MiniRow(icon: Icons.phone_outlined, value: shop.shopContact),
-          if ((shop.email ?? '').isNotEmpty)
-            _MiniRow(icon: Icons.mail_outline_rounded, value: shop.email!),
-          if ((shop.description ?? '').isNotEmpty)
+          if (secondaryPhone.isNotEmpty)
+            _MiniRow(icon: Icons.call_outlined, value: secondaryPhone),
+          if (email.isNotEmpty)
+            _MiniRow(icon: Icons.mail_outline_rounded, value: email),
+          const SizedBox(height: 6),
+          _MetaGrid(
+            values: [
+              _MetaValue(label: 'Category', value: categoryText),
+              _MetaValue(label: 'Price Range', value: priceText),
+              _MetaValue(label: 'Slug', value: slugText),
+              _MetaValue(label: 'Status', value: 'Active'),
+            ],
+          ),
+          if (descText.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: 10),
               child: Text(
-                shop.description!,
+                descText,
                 style: AppTextStyle.minimalTexts.copyWith(
                   fontSize: 12,
                   color: Colors.grey.shade800,
                 ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                label: const Text('Edit'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onManageContent,
+                icon: const Icon(Icons.info_outline_rounded, size: 16),
+                label: const Text('View Details'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onManageContent,
+                icon: const Icon(Icons.photo_library_outlined, size: 16),
+                label: const Text('View Photos'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onManageContent,
+                icon: const Icon(Icons.rate_review_outlined, size: 16),
+                label: const Text('View Reviews'),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -253,6 +304,62 @@ class _MiniRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MetaValue {
+  final String label;
+  final String value;
+
+  const _MetaValue({required this.label, required this.value});
+}
+
+class _MetaGrid extends StatelessWidget {
+  const _MetaGrid({required this.values});
+
+  final List<_MetaValue> values;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: values
+          .map(
+            (item) => Container(
+              constraints: const BoxConstraints(minWidth: 145, maxWidth: 220),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F7F2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.accent2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.label,
+                    style: AppTextStyle.minimalTexts.copyWith(
+                      fontSize: 10,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.value,
+                    style: AppTextStyle.inputBox.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }

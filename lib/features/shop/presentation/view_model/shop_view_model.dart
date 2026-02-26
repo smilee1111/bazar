@@ -1,3 +1,4 @@
+import 'package:bazar/core/usecases/app_usecase.dart';
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shop/domain/usecases/create_shop_usecase.dart';
 import 'package:bazar/features/shop/domain/usecases/delete_shop_usecase.dart';
@@ -32,8 +33,16 @@ class ShopViewModel extends Notifier<ShopState> {
     if (state.isLoadingPublic) return;
     if (!forceRefresh && state.hasLoadedPublic) return;
 
-    state = state.copyWith(isLoadingPublic: true, clearError: true);
-    final result = await _getPublicFeedUsecase();
+    state = state.copyWith(
+      isLoadingPublic: true,
+      clearError: true,
+      // Reset pagination on fresh load
+      currentPage: 0,
+      hasMore: true,
+    );
+    final result = await _getPublicFeedUsecase(
+      const PaginationParams(page: 1),
+    );
     result.fold(
       (failure) {
         state = state.copyWith(
@@ -47,6 +56,37 @@ class ShopViewModel extends Notifier<ShopState> {
           isLoadingPublic: false,
           hasLoadedPublic: true,
           publicShops: shops,
+          currentPage: 1,
+          hasMore: shops.length >= kShopPageSize,
+          clearError: true,
+        );
+      },
+    );
+  }
+
+  /// Appends the next page of public shops. Called when the user scrolls to
+  /// the end of the feed list.
+  Future<void> loadMorePublicShops() async {
+    if (state.isLoadingMore || !state.hasMore || state.isLoadingPublic) return;
+
+    state = state.copyWith(isLoadingMore: true, clearError: true);
+    final nextPage = state.currentPage + 1;
+    final result = await _getPublicFeedUsecase(
+      PaginationParams(page: nextPage),
+    );
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          isLoadingMore: false,
+          errorMessage: failure.message,
+        );
+      },
+      (shops) {
+        state = state.copyWith(
+          isLoadingMore: false,
+          publicShops: [...state.publicShops, ...shops],
+          currentPage: nextPage,
+          hasMore: shops.length >= kShopPageSize,
           clearError: true,
         );
       },

@@ -6,6 +6,9 @@ class ShopReviewEntity extends Equatable {
   final String shopId;
   final String? reviewedBy;
   final String? reviewedByName;
+  final String? reviewedByRole;
+  final String? reviewedByProfilePic;
+  final DateTime? reviewedAt;
   final int starNum;
   final int likesCount;
   final int dislikeCount;
@@ -17,6 +20,9 @@ class ShopReviewEntity extends Equatable {
     required this.shopId,
     this.reviewedBy,
     this.reviewedByName,
+    this.reviewedByRole,
+    this.reviewedByProfilePic,
+    this.reviewedAt,
     required this.starNum,
     this.likesCount = 0,
     this.dislikeCount = 0,
@@ -30,6 +36,9 @@ class ShopReviewEntity extends Equatable {
     shopId,
     reviewedBy,
     reviewedByName,
+    reviewedByRole,
+    reviewedByProfilePic,
+    reviewedAt,
     starNum,
     likesCount,
     dislikeCount,

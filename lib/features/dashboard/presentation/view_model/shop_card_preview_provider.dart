@@ -1,7 +1,7 @@
 import 'package:bazar/core/api/api_endpoints.dart';
 import 'package:bazar/features/category/domain/entities/category_entity.dart';
 import 'package:bazar/features/category/domain/usecases/get_all_category_usecase.dart';
-import 'package:bazar/features/shop/domain/usecases/get_public_shop_by_id_usecase.dart';
+import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:bazar/features/shopDetail/domain/usecases/get_shop_detail_by_shop_usecase.dart';
 import 'package:bazar/features/shopPhoto/domain/entities/shop_photo_entity.dart';
 import 'package:bazar/features/shopPhoto/domain/usecases/get_shop_photos_by_shop_usecase.dart';
@@ -29,9 +29,19 @@ class ShopCardPreview {
   static const empty = ShopCardPreview(averageRating: 0, reviewCount: 0);
 }
 
+final _categoryCatalogProvider = FutureProvider<List<CategoryEntity>>((
+  ref,
+) async {
+  final categoriesResult = await ref.read(getAllCategoryUseCaseProvider)();
+  return categoriesResult.fold<List<CategoryEntity>>(
+    (_) => const [],
+    (value) => value,
+  );
+});
+
 final shopCardPreviewProvider =
-    FutureProvider.family<ShopCardPreview, String>((ref, shopId) async {
-      final normalized = shopId.trim();
+    FutureProvider.family<ShopCardPreview, ShopEntity>((ref, shop) async {
+      final normalized = (shop.shopId ?? '').trim();
       if (normalized.isEmpty) return ShopCardPreview.empty;
 
       final reviewsResult = await ref.read(getShopReviewsByShopUsecaseProvider)(
@@ -43,25 +53,23 @@ final shopCardPreviewProvider =
       final detailResult = await ref.read(getShopDetailByShopUsecaseProvider)(
         GetShopDetailByShopParams(shopId: normalized),
       );
-      final shopResult = await ref.read(getPublicShopByIdUsecaseProvider)(
-        GetPublicShopByIdParams(shopId: normalized),
-      );
-      final categoriesResult = await ref.read(getAllCategoryUseCaseProvider)();
+      final allCategories = await ref.watch(_categoryCatalogProvider.future);
 
       final reviews = reviewsResult.fold<List<ShopReviewEntity>>(
         (_) => const [],
         (value) => value,
       );
-      final photos = photosResult.fold((_) => const <ShopPhotoEntity>[], (value) => value);
-      final detail = detailResult.fold((_) => null, (value) => value);
-      final shop = shopResult.fold((_) => null, (value) => value);
-      final allCategories = categoriesResult.fold<List<CategoryEntity>>(
-        (_) => const [],
+      final photos = photosResult.fold(
+        (_) => const <ShopPhotoEntity>[],
         (value) => value,
       );
+      final detail = detailResult.fold((_) => null, (value) => value);
 
       final reviewCount = reviews.length;
-      final starsTotal = reviews.fold<int>(0, (sum, item) => sum + item.starNum);
+      final starsTotal = reviews.fold<int>(
+        0,
+        (sum, item) => sum + item.starNum,
+      );
       final average = reviewCount == 0 ? 0.0 : starsTotal / reviewCount;
 
       final photoUrls = photos
@@ -70,17 +78,17 @@ final shopCardPreviewProvider =
           .take(3)
           .toList();
 
-      final links = [
-        detail?.link1,
-        detail?.link2,
-        detail?.link3,
-        detail?.link4,
-      ].whereType<String>().map((item) => item.trim()).where((item) => item.isNotEmpty).toList();
-      final detailSnippet =
-          detail?.shopId == normalized && links.isNotEmpty ? links.first : null;
+      final links = [detail?.link1, detail?.link2, detail?.link3, detail?.link4]
+          .whereType<String>()
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toList();
+      final detailSnippet = detail?.shopId == normalized && links.isNotEmpty
+          ? links.first
+          : null;
 
       final resolvedCategories = _resolveCategoryNames(
-        raw: shop?.categoryNames ?? const [],
+        raw: shop.categoryNames,
         allCategories: allCategories,
       );
 
@@ -90,7 +98,7 @@ final shopCardPreviewProvider =
         photoUrls: photoUrls,
         detailSnippet: detailSnippet,
         categoryNames: resolvedCategories,
-        priceRange: shop?.priceRange,
+        priceRange: shop.priceRange,
       );
     });
 

@@ -1,6 +1,8 @@
 import 'package:bazar/features/shop/domain/entities/shop_entity.dart';
 import 'package:equatable/equatable.dart';
 
+const _kPageSize = 15;
+
 class ShopState extends Equatable {
   final bool isLoadingPublic;
   final bool isLoadingSeller;
@@ -13,6 +15,11 @@ class ShopState extends Equatable {
   final ShopEntity? myShop;
   final String? errorMessage;
 
+  // Pagination
+  final int currentPage;
+  final bool hasMore;
+  final bool isLoadingMore;
+
   const ShopState({
     this.isLoadingPublic = false,
     this.isLoadingSeller = false,
@@ -24,6 +31,9 @@ class ShopState extends Equatable {
     this.sellerShops = const [],
     this.myShop,
     this.errorMessage,
+    this.currentPage = 0,
+    this.hasMore = true,
+    this.isLoadingMore = false,
   });
 
   ShopState copyWith({
@@ -39,6 +49,9 @@ class ShopState extends Equatable {
     bool clearMyShop = false,
     String? errorMessage,
     bool clearError = false,
+    int? currentPage,
+    bool? hasMore,
+    bool? isLoadingMore,
   }) {
     return ShopState(
       isLoadingPublic: isLoadingPublic ?? this.isLoadingPublic,
@@ -51,6 +64,9 @@ class ShopState extends Equatable {
       sellerShops: sellerShops ?? this.sellerShops,
       myShop: clearMyShop ? null : (myShop ?? this.myShop),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
 
@@ -66,5 +82,11 @@ class ShopState extends Equatable {
     sellerShops,
     myShop,
     errorMessage,
+    currentPage,
+    hasMore,
+    isLoadingMore,
   ];
 }
+
+// ignore: constant_identifier_names
+const kShopPageSize = _kPageSize;

@@ -6,6 +6,9 @@ class ShopReviewApiModel {
   final String shopId;
   final String? reviewedBy;
   final String? reviewedByName;
+  final String? reviewedByRole;
+  final String? reviewedByProfilePic;
+  final DateTime? reviewedAt;
   final int starNum;
   final int likesCount;
   final int dislikeCount;
@@ -17,6 +20,9 @@ class ShopReviewApiModel {
     required this.shopId,
     this.reviewedBy,
     this.reviewedByName,
+    this.reviewedByRole,
+    this.reviewedByProfilePic,
+    this.reviewedAt,
     required this.starNum,
     this.likesCount = 0,
     this.dislikeCount = 0,
@@ -69,6 +75,41 @@ class ShopReviewApiModel {
     return null;
   }
 
+  static String? _extractUserRole(dynamic value) {
+    if (value is! Map<String, dynamic>) return null;
+
+    final directRole = value['roleName'];
+    if (directRole is String && directRole.trim().isNotEmpty) {
+      return directRole.trim();
+    }
+
+    final roleId = value['roleId'];
+    if (roleId is Map<String, dynamic>) {
+      final nestedRole = roleId['roleName'] ?? roleId['name'];
+      if (nestedRole is String && nestedRole.trim().isNotEmpty) {
+        return nestedRole.trim();
+      }
+    }
+    return null;
+  }
+
+  static String? _extractUserProfilePic(dynamic value) {
+    if (value is! Map<String, dynamic>) return null;
+    final pic = value['profilePic'] ?? value['avatar'] ?? value['photo'];
+    if (pic is String && pic.trim().isNotEmpty) {
+      return pic.trim();
+    }
+    return null;
+  }
+
+  static DateTime? _asDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String && value.trim().isNotEmpty) {
+      return DateTime.tryParse(value.trim());
+    }
+    return null;
+  }
+
   factory ShopReviewApiModel.fromJson(Map<String, dynamic> json) {
     final reviewedByRaw = json['reviewedBy'];
     return ShopReviewApiModel(
@@ -80,6 +121,15 @@ class ShopReviewApiModel {
           _extractUserName(reviewedByRaw) ??
           _asString(json['reviewedByName']) ??
           _asString(json['reviewerName']),
+      reviewedByRole:
+          _extractUserRole(reviewedByRaw) ??
+          _asString(json['reviewedByRole']) ??
+          _asString(json['reviewerRole']),
+      reviewedByProfilePic:
+          _extractUserProfilePic(reviewedByRaw) ??
+          _asString(json['reviewedByProfilePic']) ??
+          _asString(json['profilePic']),
+      reviewedAt: _asDateTime(json['createdAt'] ?? json['reviewedAt']),
       starNum: _asInt(json['starNum'], fallback: 1).clamp(1, 5),
       likesCount: _asInt(json['likesCount']),
       dislikeCount: _asInt(json['dislikeCount']),
@@ -96,6 +146,8 @@ class ShopReviewApiModel {
         'reviewedBy': reviewedBy,
       if (reviewedByName != null && reviewedByName!.isNotEmpty)
         'reviewedByName': reviewedByName,
+      if (reviewedByRole != null && reviewedByRole!.isNotEmpty)
+        'reviewedByRole': reviewedByRole,
       'likesCount': likesCount,
       'dislikeCount': dislikeCount,
       'isActive': isActive,
@@ -109,6 +161,9 @@ class ShopReviewApiModel {
       shopId: shopId,
       reviewedBy: reviewedBy,
       reviewedByName: reviewedByName,
+      reviewedByRole: reviewedByRole,
+      reviewedByProfilePic: reviewedByProfilePic,
+      reviewedAt: reviewedAt,
       starNum: starNum,
       likesCount: likesCount,
       dislikeCount: dislikeCount,
@@ -123,6 +178,9 @@ class ShopReviewApiModel {
       shopId: entity.shopId,
       reviewedBy: entity.reviewedBy,
       reviewedByName: entity.reviewedByName,
+      reviewedByRole: entity.reviewedByRole,
+      reviewedByProfilePic: entity.reviewedByProfilePic,
+      reviewedAt: entity.reviewedAt,
       starNum: entity.starNum,
       likesCount: entity.likesCount,
       dislikeCount: entity.dislikeCount,

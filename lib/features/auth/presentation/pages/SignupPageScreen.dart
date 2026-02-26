@@ -1,4 +1,5 @@
 import 'package:bazar/app/routes/app_routes.dart';
+import 'package:bazar/app/theme/colors.dart';
 import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/core/utils/snackbar_utils.dart';
 import 'package:bazar/features/auth/presentation/pages/LoginPageScreen.dart';
@@ -91,181 +92,210 @@ class _SignuppagescreenState extends ConsumerState<Signuppagescreen> {
     });
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(30),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SignupHeader(),
-                const SizedBox(height: 10),
-                Text(
-                  'enter your details below',
-                  style: AppTextStyle.minimalTexts,
-                ),
-                const SizedBox(height: 30),
-                TextFormField(
-                  controller: _fullnameController,
-                  keyboardType: TextInputType.text,
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    hintText: 'e.g: Ram kc',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    if (value.length < 3) {
-                      return 'Name must be at least 3 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email Address',
-                    hintText: 'e.g: example.com',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!RegExp(
-                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                    ).hasMatch(value)) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: _phoneNumberController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    hintText: 'e.g: +977-9812345678',
-                    prefixIcon: Icon(Icons.phone_outlined),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    if (value.length < 10) {
-                      return 'Phone number must be at least 10 digits';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: _usernameController,
-                  keyboardType: TextInputType.text,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    hintText: 'e.g: john_doe123',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your username.';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'password must have special characters',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    hintText: 'Re-enter your password',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 15),
-                SizedBox(
-                  width: 150,
-                  child: ElevatedButton(
-                    onPressed:
-                        authState.status == AuthStatus.loading ? null : _handleSignup,
-                    child: authState.status == AuthStatus.loading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('SIGN UP'),
-                  ),
-                ),
-                TextButton(
-                  onPressed: _navigateToLogin,
-                  child: Text(
-                    'Already have an account? Sign In',
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.lighterCream, AppColors.cream],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SignupHeader(),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Enter your details below',
                     style: AppTextStyle.minimalTexts.copyWith(
-                      decoration: TextDecoration.underline,
+                      color: AppColors.secondary,
                     ),
                   ),
-                ),
-                AuthGoogleButton(onPressed: _handleGoogleSignUp),
-              ],
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _fullnameController,
+                          keyboardType: TextInputType.text,
+                          decoration: const InputDecoration(
+                            labelText: 'Full Name',
+                            hintText: 'e.g: Ram kc',
+                            prefixIcon: Icon(Icons.person_outline_rounded),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your name';
+                            }
+                            if (value.length < 3) {
+                              return 'Name must be at least 3 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: 'Email Address',
+                            hintText: 'e.g: example.com',
+                            prefixIcon: Icon(Icons.mail_outline_rounded),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                            ).hasMatch(value)) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _phoneNumberController,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'Phone Number',
+                            hintText: 'e.g: +977-9812345678',
+                            prefixIcon: Icon(Icons.phone_outlined),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your phone number';
+                            }
+                            if (value.length < 10) {
+                              return 'Phone number must be at least 10 digits';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _usernameController,
+                          keyboardType: TextInputType.text,
+                          decoration: const InputDecoration(
+                            labelText: 'Username',
+                            hintText: 'e.g: john_doe123',
+                            prefixIcon: Icon(Icons.alternate_email_rounded),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your username.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            hintText: 'Password must have special characters',
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a password';
+                            }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirmPassword,
+                          decoration: InputDecoration(
+                            labelText: 'Confirm Password',
+                            hintText: 'Re-enter your password',
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please confirm your password';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Passwords do not match';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        ElevatedButton(
+                          onPressed: authState.status == AuthStatus.loading
+                              ? null
+                              : _handleSignup,
+                          child: authState.status == AuthStatus.loading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('SIGN UP'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _navigateToLogin,
+                    child: Text(
+                      'Already have an account? Sign In',
+                      style: AppTextStyle.minimalTexts.copyWith(
+                        color: AppColors.secondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  AuthGoogleButton(onPressed: _handleGoogleSignUp),
+                ],
+              ),
             ),
           ),
         ),

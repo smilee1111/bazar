@@ -16,7 +16,7 @@ class ApiEndpoints {
 
   // Configuration
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '192.168.101.11';
+  static const String _ipAddress = '192.168.1.93';
   //192.168.1.93
   //192.168.101.11'
   static const int _port = 5050;
@@ -56,12 +56,26 @@ class ApiEndpoints {
   static const String shops = '/shops';
   static const String sellerShops = '/seller/shops';
   static const String publicShopsFeed = '/shops/public';
+  static String publicShopsFeedPaged({int page = 1, int limit = 15}) =>
+      '/shops/public?page=$page&limit=$limit';
   static String publicShopById(String shopId) => '/shops/public/$shopId';
+  static String publicShopRouteById(String shopId) =>
+      '/shops/public/$shopId/route';
   static String sellerShopById(String id) => '/seller/shops/$id';
   static const String mySellerShop = '/seller/shops/my';
   static const String userReviews = '/user/reviews';
   static const String userSavedShops = '/user/saved-shops';
   static const String userFavourites = '/user/favourites';
+  static const String userNotifications = '/user/notifications';
+  static String userNotificationById(String id) => '/user/notifications/$id';
+  static String markUserNotificationAsRead(String id) =>
+      '/user/notifications/$id/read';
+  static const String userNotificationUnreadCount =
+      '/user/notifications/unread-count';
+  static const String userNotificationMarkMultipleRead =
+      '/user/notifications/mark-multiple-read';
+  static const String userNotificationMarkAllRead =
+      '/user/notifications/mark-all-read';
 
   // ============ Shop Detail Endpoints ============
   static String shopDetailsByShop(String shopId) => '/shops/$shopId/details';
@@ -96,7 +110,8 @@ class ApiEndpoints {
   static const String authRegister = '/auth/register';
   static const String authRequestPasswordReset = '/auth/request-password-reset';
   static const String authVerifyResetOtp = '/auth/verify-reset-otp';
-  static String authResetPassword(String token) => '/auth/reset-password/$token';
+  static String authResetPassword(String token) =>
+      '/auth/reset-password/$token';
   static const String userUploadPhoto = '/auth/update-profile';
   static String userPicture(String filename) =>
       '$mediaServerUrl/user_photos/$filename';

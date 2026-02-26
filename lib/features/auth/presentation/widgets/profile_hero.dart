@@ -1,3 +1,4 @@
+import 'package:bazar/app/theme/colors.dart';
 import 'package:flutter/material.dart';
 
 class ProfileHero extends StatelessWidget {
@@ -13,55 +14,94 @@ class ProfileHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 280,
+      height: 260,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
         children: [
+          // Gradient banner
           Align(
             alignment: Alignment.topCenter,
             child: Container(
-              height: 220,
+              height: 190,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: const Color(0xFFE8D9AE),
-                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.darkBrown],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.22),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              // Subtle decorative circle
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Icon(
+                    Icons.storefront_outlined,
+                    size: 56,
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                ),
               ),
             ),
           ),
+          // Avatar
           Positioned(
-            top: 150,
+            top: 128,
             child: Stack(
               children: [
-                CircleAvatar(
-                  radius: 58,
-                  backgroundColor: Colors.white,
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: CircleAvatar(
                     radius: 54,
-                    backgroundColor: const Color(0xFFF3F3F3),
+                    backgroundColor: AppColors.surfaceStrong,
                     backgroundImage: profileImageProvider,
                     child: profileImageProvider == null
                         ? const Icon(
                             Icons.person_outline_rounded,
-                            size: 48,
-                            color: Colors.black45,
+                            size: 46,
+                            color: AppColors.accent,
                           )
                         : null,
                   ),
                 ),
                 Positioned(
-                  right: 4,
-                  bottom: 4,
+                  right: 2,
+                  bottom: 2,
                   child: Material(
-                    color: Colors.white,
+                    color: AppColors.primary,
                     shape: const CircleBorder(),
                     elevation: 2,
                     child: InkWell(
                       customBorder: const CircleBorder(),
                       onTap: onEditTap,
                       child: const Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Icon(Icons.edit_outlined, size: 20),
+                        padding: EdgeInsets.all(7),
+                        child: Icon(
+                          Icons.camera_alt_outlined,
+                          size: 17,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
