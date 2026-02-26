@@ -1,4 +1,4 @@
-import 'package:bazar/screens/FavouriteScreen.dart';
+import 'package:bazar/features/favourite/presentation/pages/FavouriteScreen.dart';
 import 'package:bazar/core/services/storage/user_session_service.dart';
 import 'package:bazar/features/auth/presentation/view_model/auth_viewmodel.dart';
 import 'package:bazar/features/dashboard/presentation/pages/HomeScreen.dart';
@@ -7,7 +7,7 @@ import 'package:bazar/features/dashboard/presentation/widgets/dashboard_app_bar.
 import 'package:bazar/features/dashboard/presentation/widgets/dashboard_bottom_nav.dart';
 import 'package:bazar/features/role/domain/usecases/get_all_role_usecase.dart';
 import 'package:bazar/features/shop/presentation/pages/seller_shop_page.dart';
-import 'package:bazar/screens/SavedScreen.dart';
+import 'package:bazar/features/savedShop/presentation/pages/SavedScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

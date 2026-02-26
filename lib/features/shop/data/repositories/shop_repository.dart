@@ -105,12 +105,18 @@ class ShopRepository implements IShopRepository {
   }
 
   @override
-  Future<Either<Failure, List<ShopEntity>>> getPublicFeed() async {
+  Future<Either<Failure, List<ShopEntity>>> getPublicFeed({
+    int page = 1,
+    int limit = 15,
+  }) async {
     if (!await _networkInfo.isConnected) {
       return const Left(NetworkFailure(message: 'No internet connection'));
     }
     try {
-      final models = await _remoteDataSource.getPublicFeed();
+      final models = await _remoteDataSource.getPublicFeed(
+        page: page,
+        limit: limit,
+      );
       return Right(ShopApiModel.toEntityList(models));
     } on DioException catch (e) {
       return Left(

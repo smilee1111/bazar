@@ -56,6 +56,8 @@ class ApiEndpoints {
   static const String shops = '/shops';
   static const String sellerShops = '/seller/shops';
   static const String publicShopsFeed = '/shops/public';
+  static String publicShopsFeedPaged({int page = 1, int limit = 15}) =>
+      '/shops/public?page=$page&limit=$limit';
   static String publicShopById(String shopId) => '/shops/public/$shopId';
   static String publicShopRouteById(String shopId) =>
       '/shops/public/$shopId/route';

@@ -10,6 +10,9 @@ abstract interface class IShopRepository {
   Future<Either<Failure, ShopEntity>> updateShop(ShopEntity shop);
   Future<Either<Failure, bool>> deleteShop(String shopId);
 
-  Future<Either<Failure, List<ShopEntity>>> getPublicFeed();
+  Future<Either<Failure, List<ShopEntity>>> getPublicFeed({
+    int page = 1,
+    int limit = 15,
+  });
   Future<Either<Failure, ShopEntity>> getPublicShopById(String shopId);
 }
