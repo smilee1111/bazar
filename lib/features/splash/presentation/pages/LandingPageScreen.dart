@@ -1,5 +1,6 @@
 import 'package:bazar/app/routes/app_routes.dart';
 import 'package:bazar/app/theme/colors.dart';
+import 'package:bazar/app/theme/textstyle.dart';
 import 'package:bazar/features/onboarding/presentation/pages/OnboardingScreen.dart';
 import 'package:bazar/features/splash/presentation/widgets/branding_split_layout.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class LandingPageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.cream,
       ),
       body: BrandingSplitLayout(
         bottomChild: Column(
@@ -19,32 +20,33 @@ class LandingPageScreen extends StatelessWidget {
           children: [
             Text(
               'Find your Shop.',
-              style: TextStyle(
-                fontSize: 30,
+              style: AppTextStyle.h1.copyWith(
+                fontSize: 32,
                 fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w400,
-                color: Colors.brown[500],
+                color: AppColors.primary,
               ),
             ),
             SizedBox(
-              width: 150,
+              width: 180,
               child: ElevatedButton(
                 onPressed: () {
                   AppRoutes.push(context, const Onboardingscreen());
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 11,
+                    horizontal: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14.0),
                   ),
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.primary,
                 ),
-                child: const Text(
+                child: Text(
                   'BEGIN',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w300,
+                  style: AppTextStyle.buttonText.copyWith(
+                    fontSize: 20,
+                    letterSpacing: 1.0,
                   ),
                 ),
               ),

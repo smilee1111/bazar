@@ -30,10 +30,12 @@ class DashboardBottomNav extends StatelessWidget {
     ];
 
     return BottomNavigationBar(
-      iconSize: 40,
+      iconSize: 24,
       items: items,
       currentIndex: currentIndex,
       onTap: onTap,
+      selectedFontSize: 11,
+      unselectedFontSize: 11,
     );
   }
 }

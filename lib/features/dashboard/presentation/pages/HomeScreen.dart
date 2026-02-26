@@ -46,7 +46,8 @@ class _HomescreenState extends ConsumerState<Homescreen> {
 
   @override
   void dispose() {
-    _sensorViewModel?.detach();
+    // Delay provider mutation until after widget teardown is complete.
+    Future.microtask(() => _sensorViewModel?.detach());
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -149,7 +150,7 @@ class _HomescreenState extends ConsumerState<Homescreen> {
                       'Refine by category, location, price and rating.',
                       style: AppTextStyle.minimalTexts.copyWith(
                         fontSize: 12,
-                        color: Colors.grey.shade700,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -584,7 +585,11 @@ class _TopBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.darkBrown],
+        ),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -675,7 +680,7 @@ class _TopBanner extends StatelessWidget {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: Colors.white.withValues(alpha: 0.35),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -727,7 +732,7 @@ class _EmptyState extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.accent2),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         children: [
@@ -760,7 +765,7 @@ class _EmptyState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: AppTextStyle.minimalTexts.copyWith(
               fontSize: 12,
-              color: Colors.grey.shade700,
+              color: AppColors.textSecondary,
             ),
           ),
           if (query.isNotEmpty) ...[
@@ -788,7 +793,7 @@ class _ShopSkeletonCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accent2),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -819,7 +824,7 @@ class _SkeletonLine extends StatelessWidget {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: const Color(0xFFEAE7DE),
+          color: AppColors.surfaceStrong,
           borderRadius: BorderRadius.circular(8),
         ),
       ),
@@ -889,7 +894,7 @@ class _RatingChip extends StatelessWidget {
               : Colors.white,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: active ? AppColors.warning : AppColors.accent2,
+            color: active ? AppColors.warning : AppColors.border,
           ),
         ),
         child: Row(
